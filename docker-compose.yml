@@ -1,0 +1,32 @@
+services:
+  app:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8080
+    restart: always
+    volumes:
+      - .:/app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      RUNNING_LOCALLY: "False"   # 👈 Override here
+      SCHEMA: public
+
+  db:
+    image: postgis/postgis:14-3.3
+    restart: always
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  pgdata:
+  

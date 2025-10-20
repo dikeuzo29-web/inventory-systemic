@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Manage Products{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h3 mb-0 text-gray-800">Manage Products</h2>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <!-- Product Form -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-plus-circle me-2"></i>Add New Product
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label fw-bold">
+                                    {{ field.label }}
+                                </label>
+                                
+                                {% if field.name == "is_returnable" %}
+                                    <div class="d-flex">
+                                        <div class="form-check me-3">
+                                            <input class="form-check-input" type="radio" name="{{ field.name }}" 
+                                                   id="{{ field.id_for_label }}_yes" value="True"
+                                                   {% if field.value %}checked{% endif %}>
+                                            <label class="form-check-label fw-bold" for="{{ field.id_for_label }}_yes">
+                                                Yes
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="{{ field.name }}" 
+                                                   id="{{ field.id_for_label }}_no" value="False"
+                                                   {% if not field.value %}checked{% endif %}>
+                                            <label class="form-check-label fw-bold" for="{{ field.id_for_label }}_no">
+                                                No
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                {% elif field.name == "deposit_amount" %}
+                                    <div id="deposit-group">
+                                        {{ field }}
+                                    </div>
+                                    
+                                {% else %}
+                                    {{ field }}
+                                {% endif %}
+
+                                {% if field.help_text %}
+                                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                                {% endif %}
+
+                                {% if field.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in field.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i> Save Product
+                            </button>
+                        </div>
+                    </form>
+                    <script src="{% static 'js/dexie.min.js' %}"></script>
+                    <script src="{% static 'js/offline_sync.js' %}"></script> {# Load your new offline logic #}
+                    <script src="{% static 'js/products.js' %}"></script>
+                    <script>
+                        document.getElementById('productForm').addEventListener('submit', async function (e) {
+                            if (!navigator.onLine) {
+                                e.preventDefault(); // Prevent default online submission
+                                const formData = Object.fromEntries(new FormData(this)); // Get form data as plain object
+                                const saved = await saveOfflineProduct(formData); // Save using your new function
+                                if (saved) {
+                                    alert('Product saved offline. Will sync when back online.');
+                                    this.reset(); // Reset form after successful offline save
+                                }
+                            }
+                            // If online, let the form submit normally (Django will handle it)
+                        });
+
+                        // Optionally, add a badge for pending products if you want
+                        // document.addEventListener('DOMContentLoaded', function() {
+                        //     // This will be called by offline_logic.js as well
+                        //     updatePendingProductsBadge();
+                        // });
+                    </script>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Table -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-boxes me-2"></i>Existing Products
+                    </h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Category</th>
+                                    <th class="text-end">Qty</th>
+                                    <th class="text-end">Price</th>
+                                    <th class="text-end">Deposit</th>
+                                    <th>Returnable?</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in page_obj %}
+                                    <tr class="{% if product.quantity <= 0 %}table-danger{% elif product.quantity <= product.low_stock_threshold %}table-warning{% endif %}">
+                                        <td>{{ product.name }}</td>
+                                        <td>{{ product.category.name }}</td>
+                                        <td class="text-end">{{ product.quantity|intcomma }}</td>
+                                        <td class="text-end">₦{{ product.price|floatformat:2|intcomma }}</td>
+                                        <td class="text-end">
+                                            {% if product.is_returnable %}
+                                                ₦{{ product.deposit_amount|floatformat:2|intcomma }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if product.is_returnable %}
+                                                <span class="badge bg-info">Yes</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">No</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if product.quantity <= 0 %}bg-danger{% elif product.quantity <= product.low_stock_threshold %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                                {% if product.quantity <= 0 %}Out of Stock{% elif product.quantity <= product.low_stock_threshold %}Low Stock{% else %}In Stock{% endif %}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted py-5">No products found.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {% if page_obj.paginator.num_pages > 1 %}
+                <div class="card-footer bg-light">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item"><a class="page-link" href="?page=1">&laquo; First</a></li>
+                                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                            {% endif %}
+                            <li class="page-item active">
+                                <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                            </li>
+                            {% if page_obj.has_next %}
+                                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                                <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Apply Bootstrap classes to form elements
+    document.querySelectorAll('input[type="text"], input[type="number"], input[type="email"], textarea').forEach(function (el) {
+        el.classList.add('form-control');
+    });
+    document.querySelectorAll('input[type="date"]').forEach(function (el) {
+        el.classList.add('form-control', 'date-picker');
+    });
+    document.querySelectorAll('select').forEach(function (el) {
+        el.classList.add('form-select');
+    });
+    
+    // Set up event listeners for returnable radio buttons
+    const returnableRadios = document.querySelectorAll('input[name="is_returnable"]');
+    const depositGroup = document.getElementById('deposit-group');
+    
+    function toggleDeposit() {
+        if (document.querySelector('input[name="is_returnable"]:checked').value === 'True') {
+            depositGroup.style.display = 'block';
+        } else {
+            depositGroup.style.display = 'none';
+        }
+    }
+    
+    returnableRadios.forEach(radio => {
+        radio.addEventListener('change', toggleDeposit);
+    });
+    
+    // Initialize deposit field visibility
+    toggleDeposit();
+    
+    // Initialize Flatpickr for date input
+    const dateInput = document.querySelector('input[type="date"]');
+    if (dateInput) {
+        flatpickr(dateInput, {
+            dateFormat: "m/d/Y",
+            allowInput: true,
+            placeholder: "mm/dd/yyyy"
+        });
+    }
+    
+    // Set default value for deposit if not set
+    const depositField = document.querySelector('#id_deposit_amount');
+    if (depositField && !depositField.value) {
+        depositField.value = '0.00';
+    }
+});
+</script>
+
+<style>
+.form-label {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+.form-check-label {
+    font-weight: 500;
+}
+.date-picker {
+    background-color: white;
+    cursor: pointer;
+}
+#id_expiry_date {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM2 2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H2z"/><path d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5V4z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 16px;
+    padding-right: 2.5rem;
+}
+</style>
+{% endblock %}

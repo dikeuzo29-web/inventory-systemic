@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Manage Sales{% endblock %}
+
+{% block content %}
+
+    {# Use h1 for the main heading on the page for better hierarchy #}
+    <h1>Record a Sale</h1>
+
+    {# The form will automatically pick up styles from base.html for p, label, input, button #}
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }} {# This renders form fields wrapped in <p> tags #}
+
+        <button type="submit">
+            <i class="fas fa-check"></i> Submit Sale {# Added an icon to the button #}
+        </button>
+    </form>
+
+    <script src="{% static 'js/dexie.min.js' %}"></script>
+    <script src="{% static 'js/offline_sync.js' %}"></script>
+    <script src="{% static 'js/sales.js' %}"></script>
+
+    
+
+    {# Use h2 for a major section heading like this #}
+    <h2>Recent Sales Transactions</h2>
+
+    {# Wrap the table in a responsive div to handle overflow on small screens #}
+    <div class="table-responsive">
+        {# Remove border="1" as table styling is handled by CSS in base.html #}
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity Sold</th>
+                    <th>Time</th>
+                    <th>Recorded By</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trans in transactions %}
+                <tr>
+                    <td>{{ trans.product.name }}</td>
+                    <td>{{ trans.quantity }}</td>
+                    <td>{{ trans.timestamp }}</td>
+                    <td>{{ trans.created_by.username }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    {# Use the CSS styled colspan cell #}
+                    <td colspan="4">No sales recorded yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div> {# Close the table-responsive div #}
+
+{% endblock %}

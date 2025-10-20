@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load custom_filters %}
+{% load static %}
+
+{% block title %}Sales Receipt - #{{ sale.id }}{% endblock %}
+
+{% block content %}
+
+<style>
+    :root {
+        --secondary-color-rgb: 108, 117, 125;
+    }
+
+    .receipt-container {
+        max-width: 480px;
+        margin: 2rem auto;
+        padding: 2rem;
+        border: 1px solid #dee2e6;
+        background-color: #fff;
+        box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+        border-radius: 8px;
+        font-family: 'Courier New', Courier, monospace;
+    }
+
+    .receipt-header {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .receipt-logo {
+        max-height: 80px;
+        margin-bottom: 1rem;
+    }
+
+    .receipt-header h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+    }
+
+    .receipt-header p {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 0;
+    }
+
+    .receipt-divider {
+        border: none;
+        border-top: 1px dashed #6c757d;
+        margin: 1.5rem 0;
+    }
+
+    .receipt-details dt, .receipt-summary dt {
+        font-weight: 600;
+    }
+
+    .receipt-details dd, .receipt-summary dd {
+        text-align: right;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.5rem 1rem;
+        font-size: 0.95rem;
+    }
+    
+    .receipt-summary {
+        margin-top: 1.5rem;
+    }
+    
+    .grand-total {
+        font-size: 1.2rem;
+        font-weight: 700;
+    }
+
+    .receipt-actions {
+        text-align: center;
+        margin-top: 2rem;
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .receipt-actions .btn {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-print {
+        background-color: #343a40;
+        color: #fff;
+    }
+    .btn-print:hover {
+        background-color: #23272b;
+    }
+    
+    .btn-back {
+        color: #6c757d;
+        text-decoration: none;
+    }
+    .btn-back:hover {
+        color: #343a40;
+    }
+
+    .deposit-notice {
+        background-color: #f8f9fa;
+        border-left: 4px solid #17a2b8;
+        padding: 0.75rem;
+        margin: 1rem 0;
+        font-size: 0.85rem;
+    }
+
+    @media print {
+        body {
+            background-color: white !important;
+        }
+        .navbar, .sidebar, .receipt-actions {
+            display: none !important;
+        }
+        .receipt-container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+            border: none;
+            box-shadow: none;
+        }
+        .deposit-notice {
+            border-left: none;
+            background-color: transparent !important;
+        }
+    }
+</style>
+
+<div class="receipt-container">
+    <div class="receipt-header">
+        <img src="{% static 'image/itekton-logo.jpg' %}" alt="iTekton Logo" class="receipt-logo">
+        <h1>Sales Receipt</h1>
+        <p>Oyigbo, Rivers State</p>
+        <p>{{ sale.timestamp|date:"M d, Y H:i" }}</p>
+    </div>
+    <hr class="receipt-divider">
+
+    <div class="receipt-meta">
+        <dl class="info-grid">
+            <dt>Receipt #:</dt> 
+            <dd>TRX-{{ sale.id|stringformat:"06d" }}</dd>
+            <dt>Cashier:</dt> 
+            <dd>{{ sale.created_by.get_full_name|default:sale.created_by.username }}</dd>
+        </dl>
+    </div>
+
+    <hr class="receipt-divider">
+
+    <div class="receipt-items">
+        <h3>Items Purchased</h3>
+        <dl class="info-grid">
+            <dt>{{ sale.product.name }}</dt>
+            <dd></dd>
+            
+            <dt>Qty × Unit Price:</dt>
+            <dd>{{ sale.quantity }} × ₦{{ sale.product.price|floatformat:2|intcomma }}</dd>
+            <dt>Subtotal:</dt>
+            <dd>₦{{ sale.amount|floatformat:2|intcomma }}</dd>
+            
+            {% if sale.deposit_amount > 0 %}
+                <dt>Container Deposit:</dt>
+                <dd>{{ sale.quantity }} × ₦{{ sale.product.deposit_amount|floatformat:2|intcomma }}</dd>
+                <dt>Deposit Total:</dt>
+                <dd>₦{{ sale.deposit_amount|floatformat:2|intcomma }}</dd>
+            {% endif %}
+        </dl>
+    </div>
+
+    <hr class="receipt-divider">
+
+    <div class="receipt-summary">
+        <dl class="info-grid">
+            <dt>Subtotal:</dt>
+            <dd>₦{{ sale.amount|floatformat:2|intcomma }}</dd>
+            
+            {% if sale.deposit_amount > 0 %}
+                <dt>Deposit:</dt>
+                <dd>₦{{ sale.deposit_amount|floatformat:2|intcomma }}</dd>
+            {% endif %}
+            
+            <dt class="grand-total">Total Paid:</dt>
+            <dd class="grand-total">₦{{ sale.amount|add:sale.deposit_amount|floatformat:2|intcomma }}</dd>
+        </dl>
+    </div>
+
+    {% if sale.deposit_amount > 0 %}
+    <div class="deposit-notice">
+        <p><strong>Deposit Information:</strong></p>
+        <p>You paid ₦{{ sale.deposit_amount|floatformat:2|intcomma }} as container deposit. 
+        Present this receipt when returning empty containers for your refund.</p>
+    </div>
+    {% endif %}
+
+    <hr class="receipt-divider">
+
+    <div class="receipt-footer text-center">
+        <p>Thank you for your patronage!</p>
+        <p class="text-muted small">iTekton Softwares © {% now "Y" %}</p>
+    </div>
+
+    <div class="receipt-actions no-print">
+        <button type="button" class="btn btn-print" onclick="window.print();">
+            <i class="fas fa-print"></i> Print Receipt
+        </button>
+        <a href="{% url 'manage_sales' %}" class="btn btn-back">
+            <i class="fas fa-arrow-left"></i> Back to Sales
+        </a>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set print button to print only the receipt
+    document.querySelector('.btn-print').addEventListener('click', function() {
+        window.print();
+    });
+});
+</script>
+
+{% endblock %}

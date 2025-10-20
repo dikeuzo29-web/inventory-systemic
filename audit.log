@@ -1,0 +1,120 @@
+Transaction 1: sale of 2 units on product 1 by user uz
+Transaction 2:  of 3 units on product 2 by user uz
+Transaction 3: sale of 2 units on product 2 by user uz
+Transaction 4: sale of 1 units on product 1 by user uz
+Transaction 5: restock of 20 units on product 2 by user uz
+Transaction 6: sale of 1 units on product 2 by user uz
+Transaction 6: sale of 1 units on product 2 by user uz
+Transaction 6: sale of 1 units on product 2 by user uz
+Transaction 6: sale of 1 units on product 2 by user uz
+Transaction 7: sale of 1 units on product 3 by user uz
+Transaction 8: sale of 1 units on product 4 by user uz
+Transaction 9: sale of 7 units on product 19 by user uz
+Transaction 10: restock of 10 units on product 19 by user uz
+Transaction 11: sale of 2 units on product 12 by user uz
+Transaction 11: sale of 2 units on product 12 by user uz
+Transaction 11: sale of 2 units on product 2 by user uz
+Transaction 11: sale of 2 units on product 2 by user uz
+Transaction 11: sale of 2 units on product 2 by user uz
+Transaction 11: sale of 2 units on product 2 by user uz
+Transaction 11: sale of 2 units on product 4 by user uz
+Transaction 11: sale of 2 units on product 4 by user uz
+Transaction 11: sale of 2 units on product 4 by user uz
+Transaction 11: sale of 2 units on product 2 by user uz
+Transaction 11: sale of 2 units on product 2 by user uz
+Transaction 11: sale of 2 units on product 2 by user uz
+Transaction 11: sale of 2 units on product 2 by user uz
+Transaction 11: sale of 1 units on product 5 by user uz
+Transaction 11: sale of 2 units on product 5 by user uz
+Transaction 12: sale of 4 units on product 6 by user uz
+Transaction 13: sale of 5 units on product 6 by user uz
+Transaction 14: sale of 5 units on product 20 by user uz
+Transaction 15: sale of 60 units on product 20 by user uz
+Transaction 16: restock of 30 units on product 20 by user uz
+Transaction 17: deposit_refund of 3 units on product 20 by user uz
+Transaction 18: sale of 5 units on product 20 by user uz
+Transaction 19: sale of 2 units on product 6 by user uz
+Transaction 20: restock of 100 units on product 21 by user uz
+Transaction 21: sale of 5 units on product 21 by user uz
+Transaction 22: deposit_refund of 1 units on product 21 by user uz
+Transaction 23: deposit_refund of 1 units on product 21 by user uz
+Transaction 24: sale of 1 units on product 2 by user uz
+Transaction 24: sale of 5 units on product 6 by user uz
+Transaction 25: sale of 1 units on product 2 by user uz
+Transaction 26: sale of 1 units on product 2 by user uz
+Transaction 27: sale of 1 units on product 2 by user uz
+Transaction 28: sale of 1 units on product 2 by user uz
+Transaction 29: sale of 10 units on product 20 by user uz
+Transaction 30: sale of 1 units on product 12 by user uz
+Transaction 31: restock of 500 units on product 12 by user uz
+Transaction 32: sale of 6 units on product 12 by user uz
+Transaction 33: sale of 2 units on product 12 by user uz
+Transaction 34: sale of 2 units on product 12 by user uz
+Transaction 35: sale of 2 units on product 12 by user uz
+Transaction 36: sale of 2 units on product 12 by user uz
+Transaction 37: sale of 1 units on product 2 by user uz (iTekton)
+Transaction 37: sale of 1 units on product 2 by user uz (iTekton)
+Transaction 38: sale of 10 units on product 19 by user uz (iTekton)
+Transaction 39: sale of 8 units on product 3 by user uz (iTekton)
+Transaction 40: sale of 8 units on product 3 by user uz (iTekton)
+Transaction 41: sale of 2 units on product 3 by user uz (iTekton)
+Transaction 42: sale of 10 units on product 3 by user uz (iTekton)
+Transaction 43: sale of 1 units on product 22 by user uz (iTekton)
+Transaction 44: sale of 1 units on product 22 by user uz (iTekton)
+Transaction 45: sale of 1 units on product 20 by user uz (iTekton)
+Transaction 46: sale of 1 units on product 24 by user uz (iTekton)
+Transaction 47: sale of 1 units on product 24 by user uz (iTekton)
+Transaction 48: restock of 2 units on product 24 by user uz (iTekton)
+Transaction 49: restock of 2 units on product 24 by user uz (iTekton)
+Transaction 50: sale of 10 units on product 21 by user uz (iTekton)
+Transaction 51: deposit_refund of 3 units on product 21 by user uz (iTekton)
+Transaction 52: deposit_refund of 10 units on product 20 by user uz (iTekton)
+Transaction 53: deposit_refund of 10 units on product 20 by user uz (iTekton)
+Transaction 54: sale of 10 units on product 21 by user uz (iTekton)
+Transaction 55: deposit_refund of 1 units on product 20 by user uz (iTekton)
+Transaction 1: sale of 10 units on product 1 by user cashier (iTekton)
+Transaction 1: sale of 10 units on product 1 by user cashier (iTekton)
+Transaction 1: sale of 10 units on product 1 by user cashier (iTekton)
+Transaction 1: sale of 10 units on product 1 by user cashier (iTekton)
+Transaction 1: sale of 10 units on product 1 by user cashier (iTekton)
+Transaction 1: sale of 10 units on product 1 by user cashier (iTekton)
+Transaction 2: deposit_refund of 1 units on product 1 by user cashier (iTekton)
+Transaction 3: deposit_refund of 2 units on product 1 by user cashier (iTekton)
+Transaction 4: deposit_refund of 3 units on product 1 by user cashier (iTekton)
+Transaction 5: deposit_refund of 4 units on product 1 by user cashier (iTekton)
+Transaction 6: deposit_refund of 5 units on product 1 by user cashier (iTekton)
+Transaction 1: sale of 10 units on product 1 by user cashier (iTekton)
+Transaction 1: sale of 10 units on product 1 by user cashier (iTekton)
+Transaction 1: deposit_refund of 1 units on product 1 by user cashier (iTekton)
+Transaction 2: deposit_refund of 2 units on product 1 by user cashier (iTekton)
+Transaction 3: deposit_refund of 3 units on product 1 by user cashier (iTekton)
+Transaction 4: deposit_refund of 4 units on product 1 by user cashier (iTekton)
+Transaction 5: deposit_refund of 5 units on product 1 by user cashier (iTekton)
+Transaction 1: deposit_refund of 3 units on product 1 by user cashier (iTekton)
+Transaction 1: deposit_refund of 1 units on product 1 by user cashier (iTekton)
+Transaction 2: deposit_refund of 2 units on product 1 by user cashier (iTekton)
+Transaction 3: deposit_refund of 3 units on product 1 by user cashier (iTekton)
+Transaction 4: deposit_refund of 4 units on product 1 by user cashier (iTekton)
+Transaction 5: deposit_refund of 5 units on product 1 by user cashier (iTekton)
+Transaction 1: deposit_refund of 3 units on product 1 by user cashier (iTekton)
+Transaction 56: deposit_refund of 1 units on product 20 by user uz (iTekton)
+Transaction 57: sale of 10 units on product 25 by user uz (iTekton)
+Transaction 1:  of 1 units on product 2 by user None
+Transaction 2:  of 1 units on product 2 by user None
+Transaction 3:  of 1 units on product 3 by user None
+Transaction 4: sale of 1 units on product 3 by user isdoh (No Company)
+Transaction 5: sale of 2 units on product 4 by user isdoh (No Company)
+Transaction 6: sale of 5 units on product 4 by user isdoh (No Company)
+Transaction 8: sale of 2 units on product 5 by user isdoh (No Company)
+Transaction 10: sale of 3 units on product 5 by user isdoh (No Company)
+Transaction 11: sale of 5 units on product 3 by user isdoh (No Company)
+Transaction 12: sale of 5 units on product 6 by user isdoh (No Company)
+Transaction 15: deposit_refund of 1 units on product 6 by user isdoh (No Company)
+Transaction 16: deposit_refund of 1 units on product 4 by user isdoh (No Company)
+Transaction 19: restock of 1 units on product 2 by user isdoh (No Company)
+Transaction 20: sale of 1 units on product 2 by user uzo (No Company)
+Transaction 21: sale of 1 units on product 2 by user uzo (No Company)
+Transaction 22: restock of 1 units on product 2 by user uzo (No Company)
+Transaction 23: sale of 5 units on product 4 by user uzo (No Company)
+Transaction 24: deposit_refund of 5 units on product 4 by user uzo (No Company)
+Transaction 1: sale of 1 units on product 2 by user uzo (No Company)

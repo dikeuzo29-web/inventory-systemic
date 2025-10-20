@@ -1,0 +1,18 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Inventory System</title>
+</head>
+<body>
+    <h1>Welcome to Inventory System ✅</h1>
+    <p>Select an option:</p>
+    <ul>
+        <li><a href="{% url 'accounts:login' %}">Login</a></li>
+        <li><a href="{% url 'accounts:logout' %}">Logout</a></li>
+        <li><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+    </ul>
+</body>
+</html>

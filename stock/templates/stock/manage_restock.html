@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Manage Restock{% endblock %}
+
+{% block content %}
+<h2>Record a Restock Transaction</h2>
+
+{% if form.errors %}
+  <div style="color: red;">
+    <p>Please correct the errors below:</p>
+    <ul>
+      {% for field in form %}
+        {% for error in field.errors %}
+          <li>{{ field.label }}: {{ error }}</li>
+        {% endfor %}
+      {% endfor %}
+      {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+<script src="{% static 'js/dexie.min.js' %}"></script>
+<script src="{% static 'js/offline_sync.js' %}"></script>
+<script src="{% static 'js/restock.js' %}"></script>
+
+<form method="post" action="">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Submit Restock</button>
+</form>
+
+<h3>Recent Restock Transactions</h3>
+<table border="1" cellpadding="5" cellspacing="0">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Product</th>
+            <th>Quantity Added</th>
+            <th>Timestamp</th>
+            <th>Recorded By</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for transaction in transactions %}
+        <tr>
+            <td>{{ transaction.id }}</td>
+            <td>{{ transaction.product }}</td>
+            <td>{{ transaction.quantity }}</td>
+            <td>{{ transaction.timestamp|date:"Y-m-d H:i" }}</td>
+            <td>{{ transaction.created_by.username }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5">No restock transactions recorded yet.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
