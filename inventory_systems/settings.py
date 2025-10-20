@@ -37,10 +37,18 @@ ALLOWED_HOSTS = [
     "127.0.0.1"
 ]
 
-# Add Render's hostname if it exists
-# RENDER_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
-# if RENDER_HOSTNAME:
-#     ALLOWED_HOSTS.append(RENDER_HOSTNAME)
+CSRF_TRUSTED_ORIGINS = [
+    "https://web-production-6f92.up.railway.app",
+]
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+#Add Render's hostname if it exists
+RENDER_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+if RENDER_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_HOSTNAME)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_HOSTNAME}")
 
 
 # Application definition
@@ -325,9 +333,4 @@ PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static', 'js', 'serviceworker.
 # Add (or update) this line:
 LOGIN_URL = '/api/accounts/login/'
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://web-production-6f92.up.railway.app",
-]
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
