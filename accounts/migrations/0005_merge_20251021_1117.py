@@ -38,7 +38,7 @@ def set_or_create_superuser(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0004_create_superuser.py'), # Make sure this matches your first migration
+        ('accounts', '0004_create_superuser'), # Make sure this matches your first migration
     ]
 
     operations = [
