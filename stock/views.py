@@ -107,8 +107,8 @@ def manage_products(request):
             product = form.save(commit=False)
             product.tenant = connection.tenant  # 👈 or however your user is linked
             product.save()
-            print(f"Product saved: {Product.name}")
-            messages.success(request, f"Product '{Product.name}' created successfully.")
+            print(f"Product saved: {product.name}")
+            messages.success(request, f"Product '{product.name}' created successfully.")
             return redirect('manage_products')
     else:
         form = ProductForm()

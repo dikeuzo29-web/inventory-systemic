@@ -24,7 +24,8 @@ class ProductForm(forms.ModelForm):
 
     class Meta:
         model = Product
-        fields = '__all__'
+        # fields = '__all__'  <-- REMOVE this line
+        exclude = ['tenant']  # <-- ADD this line inside Meta
         widgets = {
             'expiry_date': forms.DateInput(attrs={'type': 'date'}),
             'description': forms.Textarea(attrs={'rows': 3}),
