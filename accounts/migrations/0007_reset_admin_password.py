@@ -8,9 +8,10 @@ def or_create_superuser(apps, schema_editor):
     User = get_user_model()
     
     # Get credentials from environment variables
-    username = os.environ.get('uzo')
-    email = os.environ.get('udike98@gmail.com')
-    password = os.environ.get('Getrichortrydying50')
+    # Get credentials from environment variables
+    username = os.environ.get('ADMIN_USERNAME')
+    email = os.environ.get('ADMIN_EMAIL')
+    password = os.environ.get('ADMIN_PASSWORD')
 
     # Stop if variables are not set
     if not all([username, email, password]):
