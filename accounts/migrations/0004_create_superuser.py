@@ -10,9 +10,9 @@ def create_superuser(apps, schema_editor):
     User = get_user_model()
 
     # Get credentials from environment variables
-    username = os.environ.get('ADMIN_USERNAME')
-    email = os.environ.get('ADMIN_EMAIL')
-    password = os.environ.get('ADMIN_PASSWORD')
+    username = os.environ.get('uzo')
+    email = os.environ.get('udike98@gmail.com')
+    password = os.environ.get('Getrichortrydying50')
 
     # Check if a superuser already exists
     if User.objects.filter(is_superuser=True).exists():
