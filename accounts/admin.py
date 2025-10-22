@@ -7,23 +7,24 @@ from .models import CustomUser
 # It's good practice to import the tenant model for type checking, though not strictly required
 # This assumes your TENANT_MODEL is 'tenants.Client'
 from tenants.models import Client as TenantModel 
+from tenants.models import Domain
 
 @admin.register(CustomUser)
 class CustomUserAdmin(BaseUserAdmin):
     # This correctly adds the 'company' field (which is a ForeignKey to the Tenant)
     # to the add/change forms.
     fieldsets = BaseUserAdmin.fieldsets + (
-        ('Tenant Info', {'fields': ('company',)}),
+        ('Tenant Info', {'fields': ('company', "role")}),
     )
     add_fieldsets = BaseUserAdmin.add_fieldsets + (
-        (None, {'fields': ('company',)}),
+        (None, {'fields': ('company',"role")}),
     )
 
     # Shows the company in the list view
-    list_display = ('username', 'email', 'is_staff', 'company')
+    list_display = ('username', 'email', 'is_staff', 'company', "role")
 
     # Allows filtering by company
-    list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups', 'company')
+    list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups', 'company', "role")
     
     search_fields = ('username', 'email')
     ordering = ('username',)
@@ -75,3 +76,7 @@ from django_tenants.admin import TenantAdminMixin
 @admin.register(TenantModel)
 class TenantAdmin(TenantAdminMixin, admin.ModelAdmin):
     list_display = ('name', 'schema_name', 'created_at')
+
+@admin.register(Domain)
+class DomainAdmin(admin.ModelAdmin):
+    list_display = ('domain', 'tenant', 'is_primary')
