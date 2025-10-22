@@ -1,3 +1,4 @@
+#inventory_systems/tenant_urls.py
 from django.urls import path, include
 from django.shortcuts import render, redirect
 
@@ -11,4 +12,3 @@ urlpatterns = [
     path("offline/", render, {"template_name": "offline.html"}),    # Optional offline page
     path("", include("pwa.urls")),                                  # PWA routes
 ]
-
