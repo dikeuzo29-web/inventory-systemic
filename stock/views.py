@@ -161,58 +161,34 @@ def manage_sales(request):
         messages.warning(request, "You don't have permission to access this page.")
         return redirect('dashboard')
 
-    products = Product.objects.all().order_by('name')
-
     if request.method == 'POST':
-        try:
-            data = json.loads(request.body.decode()) if request.content_type == 'application/json' else request.POST
-            items = data.get('items') if isinstance(data, dict) else request.POST.getlist('items')
+        form = SalesTransactionForm(request.POST)
+        if form.is_valid():
+            sale = form.save(commit=False)
+            sale.tenant = connection.tenant
+            sale.transaction_type = 'sale'
+            sale.created_by = request.user
 
-            if not items:
-                messages.error(request, "No items selected.")
-                return redirect('manage_sales')
+            product = sale.product
 
-            sale = Sale.objects.create(
-                tenant=connection.tenant,
-                created_by=request.user,
-            )
-
-            total = Decimal('0.00')
-            for item in items:
-                product_id = item.get('product') if isinstance(item, dict) else item
-                quantity = int(item.get('quantity', 0)) if isinstance(item, dict) else int(request.POST.get(f'qty_{product_id}', 0))
-                product = Product.objects.get(id=product_id)
-
-                if product.quantity < quantity:
-                    messages.error(request, f"Insufficient stock for {product.name}.")
-                    sale.delete()
-                    return redirect('manage_sales')
-
-                txn = Transaction.objects.create(
-                    sale=sale,
-                    tenant=connection.tenant,
-                    product=product,
-                    quantity=quantity,
-                    transaction_type='sale',
-                    created_by=request.user
-                )
-
-                product.quantity -= quantity
+            # ✅ Validate stock before saving
+            if product.quantity < sale.quantity:
+                form.add_error('quantity', 'Insufficient stock for this sale.')
+            else:
+                sale.save()  # Save transaction
+                # ✅ Adjust product stock
+                product.quantity -= sale.quantity
                 product.save()
-                total += txn.amount + txn.deposit_amount
+                # ✅ Redirect to receipt
+                return redirect('sales_receipt', sale_id=sale.id)
+        else:
+            messages.error(request, "Invalid form submission. Please check all fields.")
+    else:
+        form = SalesTransactionForm()
 
-            sale.total_amount = total
-            sale.save()
+    transactions = Transaction.objects.filter(transaction_type='sale').select_related('product', 'created_by').order_by('-timestamp')[:50]
 
-            messages.success(request, "Sale recorded successfully.")
-            return render(request, 'stock/sales_receipt.html', {'sale': sale})
-
-        except Exception as e:
-            messages.error(request, f"Error recording sale: {e}")
-            return redirect('manage_sales')
-
-    transactions = Sale.objects.prefetch_related('items__product').order_by('-timestamp')[:50]
-    context = {'products': products, 'transactions': transactions}
+    context = {'form': form, 'transactions': transactions}
     return render(request, 'stock/manage_sales.html', context)
 
 
