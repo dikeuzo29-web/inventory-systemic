@@ -1,8 +1,8 @@
 from rest_framework.views import APIView
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from .models import Category, Product, Transaction
-from .serializers import CategorySerializer, ProductSerializer, TransactionSerializer
+from .models import Category, Product, Transaction, Sale
+from .serializers import CategorySerializer, ProductSerializer, TransactionSerializer, SaleSerializer
 from .permissions import IsCashierOrManager, IsManager
 from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer
 from django.shortcuts import render, redirect
@@ -36,8 +36,8 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 # Sales Transaction endpoint – available to cashiers and managers
 class SalesTransactionViewSet(viewsets.ModelViewSet):
-    queryset = Transaction.objects.all()
-    serializer_class = TransactionSerializer
+    queryset = Sale.objects.prefetch_related('items__product').all()
+    serializer_class = SaleSerializer
     permission_classes = [IsCashierOrManager]
 
     def create(self, request, *args, **kwargs):
@@ -161,35 +161,60 @@ def manage_sales(request):
         messages.warning(request, "You don't have permission to access this page.")
         return redirect('dashboard')
 
+    products = Product.objects.all().order_by('name')
+
     if request.method == 'POST':
-        form = SalesTransactionForm(request.POST)
-        if form.is_valid():
-            sale = form.save(commit=False)
-            sale.tenant = connection.tenant  # tenant-aware
-            sale.transaction_type = 'sale'
-            sale.created_by = request.user
+        try:
+            data = json.loads(request.body.decode()) if request.content_type == 'application/json' else request.POST
+            items = data.get('items') if isinstance(data, dict) else request.POST.getlist('items')
 
-            product = sale.product
+            if not items:
+                messages.error(request, "No items selected.")
+                return redirect('manage_sales')
 
-            # ✅ Validate stock before saving (signal will only fire if valid)
-            if product.quantity < sale.quantity:
-                form.add_error('quantity', 'Insufficient stock for this sale.')
-            else:
-                sale.save()  # signal will now adjust stock
-                messages.success(
-                    request,
-                    f"Sale of {sale.quantity} x {product.name} recorded."
+            sale = Sale.objects.create(
+                tenant=connection.tenant,
+                created_by=request.user,
+            )
+
+            total = Decimal('0.00')
+            for item in items:
+                product_id = item.get('product') if isinstance(item, dict) else item
+                quantity = int(item.get('quantity', 0)) if isinstance(item, dict) else int(request.POST.get(f'qty_{product_id}', 0))
+                product = Product.objects.get(id=product_id)
+
+                if product.quantity < quantity:
+                    messages.error(request, f"Insufficient stock for {product.name}.")
+                    sale.delete()
+                    return redirect('manage_sales')
+
+                txn = Transaction.objects.create(
+                    sale=sale,
+                    tenant=connection.tenant,
+                    product=product,
+                    quantity=quantity,
+                    transaction_type='sale',
+                    created_by=request.user
                 )
-                return render(request, 'stock/sales_receipt.html', {'sale': sale})
-    else:
-        form = SalesTransactionForm()
 
-    transactions = Transaction.objects.filter(
-        transaction_type='sale'
-    ).select_related('product', 'created_by').order_by('-timestamp')[:50]
+                product.quantity -= quantity
+                product.save()
+                total += txn.amount + txn.deposit_amount
 
-    context = {'form': form, 'transactions': transactions}
+            sale.total_amount = total
+            sale.save()
+
+            messages.success(request, "Sale recorded successfully.")
+            return render(request, 'stock/sales_receipt.html', {'sale': sale})
+
+        except Exception as e:
+            messages.error(request, f"Error recording sale: {e}")
+            return redirect('manage_sales')
+
+    transactions = Sale.objects.prefetch_related('items__product').order_by('-timestamp')[:50]
+    context = {'products': products, 'transactions': transactions}
     return render(request, 'stock/manage_sales.html', context)
+
 
 
 

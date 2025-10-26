@@ -155,7 +155,7 @@
     <div class="receipt-meta">
         <dl class="info-grid">
             <dt>Receipt #:</dt> 
-            <dd>TRX-{{ sale.id|stringformat:"06d" }}</dd>
+            <dd>{{ sale.id }}</dd>
             <dt>Cashier:</dt> 
             <dd>{{ sale.created_by.get_full_name|default:sale.created_by.username }}</dd>
         </dl>
@@ -165,22 +165,32 @@
 
     <div class="receipt-items">
         <h3>Items Purchased</h3>
-        <dl class="info-grid">
-            <dt>{{ sale.product.name }}</dt>
-            <dd></dd>
-            
-            <dt>Qty × Unit Price:</dt>
-            <dd>{{ sale.quantity }} × ₦{{ sale.product.price|floatformat:2|intcomma }}</dd>
-            <dt>Subtotal:</dt>
-            <dd>₦{{ sale.amount|floatformat:2|intcomma }}</dd>
-            
-            {% if sale.deposit_amount > 0 %}
-                <dt>Container Deposit:</dt>
-                <dd>{{ sale.quantity }} × ₦{{ sale.product.deposit_amount|floatformat:2|intcomma }}</dd>
-                <dt>Deposit Total:</dt>
-                <dd>₦{{ sale.deposit_amount|floatformat:2|intcomma }}</dd>
-            {% endif %}
-        </dl>
+        <table style="width:100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th align="left">Product</th>
+                    <th align="right">Qty</th>
+                    <th align="right">Price</th>
+                    <th align="right">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in sale.items.all %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td align="right">{{ item.quantity }}</td>
+                    <td align="right">₦{{ item.product.price|floatformat:2|intcomma }}</td>
+                    <td align="right">₦{{ item.amount|floatformat:2|intcomma }}</td>
+                </tr>
+                {% if item.deposit_amount > 0 %}
+                <tr>
+                    <td colspan="3" align="right">Container Deposit</td>
+                    <td align="right">₦{{ item.deposit_amount|floatformat:2|intcomma }}</td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 
     <hr class="receipt-divider">
@@ -188,22 +198,22 @@
     <div class="receipt-summary">
         <dl class="info-grid">
             <dt>Subtotal:</dt>
-            <dd>₦{{ sale.amount|floatformat:2|intcomma }}</dd>
-            
-            {% if sale.deposit_amount > 0 %}
-                <dt>Deposit:</dt>
-                <dd>₦{{ sale.deposit_amount|floatformat:2|intcomma }}</dd>
+            <dd>₦{{ sale.items.all|map:'amount'|sum|floatformat:2|intcomma }}</dd>
+
+            {% if sale.items.all|map:'deposit_amount'|sum > 0 %}
+            <dt>Deposit Total:</dt>
+            <dd>₦{{ sale.items.all|map:'deposit_amount'|sum|floatformat:2|intcomma }}</dd>
             {% endif %}
             
             <dt class="grand-total">Total Paid:</dt>
-            <dd class="grand-total">₦{{ sale.amount|add:sale.deposit_amount|floatformat:2|intcomma }}</dd>
+            <dd class="grand-total">₦{{ sale.total_amount|floatformat:2|intcomma }}</dd>
         </dl>
     </div>
 
-    {% if sale.deposit_amount > 0 %}
+    {% if sale.items.all|map:'deposit_amount'|sum > 0 %}
     <div class="deposit-notice">
         <p><strong>Deposit Information:</strong></p>
-        <p>You paid ₦{{ sale.deposit_amount|floatformat:2|intcomma }} as container deposit. 
+        <p>You paid ₦{{ sale.items.all|map:'deposit_amount'|sum|floatformat:2|intcomma }} as container deposit. 
         Present this receipt when returning empty containers for your refund.</p>
     </div>
     {% endif %}
@@ -227,7 +237,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Set print button to print only the receipt
     document.querySelector('.btn-print').addEventListener('click', function() {
         window.print();
     });
