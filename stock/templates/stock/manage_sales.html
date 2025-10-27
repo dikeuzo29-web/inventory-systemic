@@ -5,7 +5,7 @@
 {% block title %}Manage Sales{% endblock %}
 
 
-
+{% block content %}
 <form method="post" id="sales-form">
     {% csrf_token %}
     {{ formset.management_form }}
