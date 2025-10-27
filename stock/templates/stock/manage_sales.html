@@ -4,19 +4,31 @@
 
 {% block title %}Manage Sales{% endblock %}
 
-{% block content %}
-    <h1>Record a Sale</h1>
 
-    <form method="post">
-        {% csrf_token %}
-        {{ formset.management_form }}
+
+<form method="post" id="sales-form">
+    {% csrf_token %}
+    {{ formset.management_form }}
+
+    <div id="formset-container">
         {% for form in formset %}
-            {{ form.as_p }}
+            <div class="formset-row border rounded p-3 mb-2">
+                {{ form.as_p }}
+                <button type="button" class="btn btn-danger btn-sm remove-form">Remove</button>
+            </div>
         {% endfor %}
-        <button type="submit">
-            <i class="fas fa-check"></i> Submit Sale
-        </button>
-    </form>
+    </div>
+
+    <button type="button" class="btn btn-secondary" id="add-form-btn">
+        Add another product
+    </button>
+    <button type="submit" class="btn btn-primary">
+        Submit Sale
+    </button>
+</form>
+
+<hr>
+
 
     <script src="{% static 'js/dexie.min.js' %}"></script>
     <script src="{% static 'js/offline_sync.js' %}"></script>
@@ -57,4 +69,42 @@
     </tbody>
 </table>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const addBtn = document.getElementById("add-form-btn");
+    const container = document.getElementById("formset-container");
+    const totalForms = document.getElementById("id_form-TOTAL_FORMS");
+
+    // ➕ Add new form
+    addBtn.addEventListener("click", function() {
+        const formCount = parseInt(totalForms.value);
+        const newForm = container.children[0].cloneNode(true);
+
+        // Reset input values
+        newForm.querySelectorAll("input, select").forEach(input => {
+            if (input.type === "checkbox") input.checked = false;
+            else input.value = "";
+        });
+
+        // Update form index (for Django)
+        newForm.innerHTML = newForm.innerHTML.replace(/form-(\d)+/g, `form-${formCount}`);
+        container.appendChild(newForm);
+
+        totalForms.value = formCount + 1;
+    });
+
+    // 🗑️ Remove form
+    document.addEventListener("click", function(e) {
+        if (e.target.classList.contains("remove-form")) {
+            const rows = document.querySelectorAll(".formset-row");
+            if (rows.length > 1) {
+                e.target.closest(".formset-row").remove();
+                totalForms.value = document.querySelectorAll(".formset-row").length;
+            }
+        }
+    });
+});
+</script>
+
 {% endblock %}

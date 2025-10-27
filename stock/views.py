@@ -169,7 +169,7 @@ def manage_sales(request):
         return redirect('dashboard')
 
     # Create a formset of your existing form
-    SalesFormSet = modelformset_factory(Transaction, form=SalesTransactionForm, extra=3, can_delete=False)
+    SalesFormSet = modelformset_factory(Transaction, form=SalesTransactionForm, extra=1, can_delete=True)
 
     if request.method == 'POST':
         formset = SalesFormSet(request.POST, queryset=Transaction.objects.none())
