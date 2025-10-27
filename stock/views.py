@@ -228,11 +228,11 @@ def manage_sales(request):
     else:
         formset = SalesFormSet(queryset=Transaction.objects.none())
 
-    transactions = Transaction.objects.filter(
-        transaction_type='sale'
-    ).select_related('product', 'created_by').order_by('-timestamp')[:50]
+    sales = Sale.objects.prefetch_related('items__product', 'created_by').order_by('-timestamp')[:50]
+    transactions = Transaction.objects.filter(transaction_type='sale').order_by('-timestamp')[:20]
 
-    context = {'formset': formset, 'transactions': transactions}
+
+    context = {'formset': formset, 'transactions': transactions, 'sales': sales}
     return render(request, 'stock/manage_sales.html', context)
 
 
