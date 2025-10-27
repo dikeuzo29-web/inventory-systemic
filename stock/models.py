@@ -6,7 +6,7 @@ import uuid
 from decimal import Decimal
 from django.db import connection
 from django_tenants.utils import get_public_schema_name
-from django.db.models import Sum, F
+
 
 class Category(models.Model):
     """
@@ -146,6 +146,7 @@ class Sale(models.Model):
         return f"Sale {self.id} - ₦{self.total_amount:,.2f}"
 
     def calculate_total(self):
+        from django.db.models import Sum, F
         total = self.items.aggregate(
             total=Sum(F('quantity') * (F('product__price') + F('product__deposit_amount')))
         )['total'] or Decimal('0.00')
