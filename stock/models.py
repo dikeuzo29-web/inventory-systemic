@@ -197,7 +197,7 @@ class Transaction(models.Model):
     sale = models.ForeignKey(
         Sale,
         on_delete=models.CASCADE,
-        related_name="items",
+        related_name='transactions',
         null=True,
         blank=True
         )
