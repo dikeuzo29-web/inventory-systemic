@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from .models import Category, Product, Transaction, Sale
-from .serializers import CategorySerializer, ProductSerializer, TransactionSerializer, SaleSerializer
+from .serializers import CategorySerializer, ProductSerializer, TransactionSerializer
 from .permissions import IsCashierOrManager, IsManager
 from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer
 from django.shortcuts import render, redirect
