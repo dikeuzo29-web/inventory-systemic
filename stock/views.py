@@ -38,7 +38,6 @@ class ProductViewSet(viewsets.ModelViewSet):
 # Sales Transaction endpoint – available to cashiers and managers
 class SalesTransactionViewSet(viewsets.ModelViewSet):
     queryset = Sale.objects.prefetch_related('items__product').all()
-    serializer_class = SaleSerializer
     permission_classes = [IsCashierOrManager]
 
     def create(self, request, *args, **kwargs):
