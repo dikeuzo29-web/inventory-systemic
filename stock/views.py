@@ -190,6 +190,8 @@ def manage_sales(request):
                         product = form.cleaned_data['product']
                         quantity = form.cleaned_data['quantity']
 
+                        product = Product.objects.select_for_update().get(pk=product.pk)
+
                         # Stock check
                         if product.quantity < quantity:
                             raise ValueError(f"Insufficient stock for {product.name}")
