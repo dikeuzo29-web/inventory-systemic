@@ -20,6 +20,7 @@ from datetime import timedelta
 import json
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import connection
+from django.db.models import Sum, F
 
 def is_cashier_or_manager(user):
     return user.role in ['cashier', 'manager']

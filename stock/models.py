@@ -123,63 +123,6 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
-    
-class Sale(models.Model):
-    """
-    Represents a complete sale transaction (which may include multiple products).
-    """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    tenant = models.ForeignKey(
-        settings.TENANT_MODEL,
-        on_delete=models.CASCADE,
-        related_name="sales"
-    )
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
-    timestamp = models.DateTimeField(default=timezone.now)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    payment_method = models.CharField(max_length=50, blank=True, null=True)  # e.g., 'cash', 'transfer', 'POS'
-
-    class Meta:
-        ordering = ['-timestamp']
-
-    def __str__(self):
-        return f"Sale {self.id} - ₦{self.total_amount:,.2f}"
-
-    def calculate_total(self):
-        total = self.items.aggregate(
-            total=Sum(F('quantity') * (F('product__price') + F('product__deposit_amount')))
-        )['total'] or Decimal('0.00')
-        self.total_amount = total
-        self.save(update_fields=['total_amount'])
-
-class SaleItem(models.Model):
-    """
-    Line item in a sale (one product per row).
-    """
-    sale = models.ForeignKey(Sale, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    deposit_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-
-    def save(self, *args, **kwargs):
-        # Compute subtotal automatically
-        self.price = self.product.price
-        self.deposit_amount = self.product.deposit_amount
-        self.subtotal = (self.price + self.deposit_amount) * self.quantity
-        super().save(*args, **kwargs)
-
-        # Reduce product stock
-        if self.product.quantity >= self.quantity:
-            self.product.quantity -= self.quantity
-            self.product.save()
-        else:
-            raise ValueError(f"Insufficient stock for {self.product.name}")
-
-    def __str__(self):
-        return f"{self.product.name} x {self.quantity}"
-
 
 class Transaction(models.Model):
     TRANSACTION_TYPES = (
