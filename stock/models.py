@@ -173,11 +173,11 @@ class SaleItem(models.Model):
         super().save(*args, **kwargs)
 
         # Reduce product stock
-        if self.product.quantity >= self.quantity:
-            self.product.quantity -= self.quantity
-            self.product.save()
-        else:
-            raise ValueError(f"Insufficient stock for {self.product.name}")
+        # if self.product.quantity >= self.quantity:
+        #     self.product.quantity -= self.quantity
+        #     self.product.save()
+        # else:
+        #     raise ValueError(f"Insufficient stock for {self.product.name}")
 
     def __str__(self):
         return f"{self.product.name} x {self.quantity}"
