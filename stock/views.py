@@ -12,15 +12,12 @@ from django.db import transaction
 from django.contrib import messages
 from accounts.models import CustomUser
 from django.core.paginator import Paginator
-import uuid
-from django.db.models import Sum, F, Count, Value
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from datetime import timedelta
 import json
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import connection
-from django.db.models import Sum, F
 
 def is_cashier_or_manager(user):
     return user.role in ['cashier', 'manager']

@@ -6,6 +6,7 @@ import uuid
 from decimal import Decimal
 from django.db import connection
 from django_tenants.utils import get_public_schema_name
+from django.db.models import F
 
 
 class Category(models.Model):
