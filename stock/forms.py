@@ -62,6 +62,42 @@ class SalesTransactionForm(forms.ModelForm):
             raise ValidationError(f"Only {product.quantity} units available in stock.")
             
         return quantity
+    
+# forms.py
+from django import forms
+from django.core.exceptions import ValidationError
+from django.forms import modelformset_factory
+from .models import SaleItem, Product
+
+class SaleItemForm(forms.ModelForm):
+    class Meta:
+        model = SaleItem
+        fields = ['product', 'quantity']
+        widgets = {
+            'quantity': forms.NumberInput(attrs={'min': 1}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['product'].queryset = Product.objects.filter(quantity__gt=0)
+
+    def clean_quantity(self):
+        quantity = self.cleaned_data['quantity']
+        product = self.cleaned_data.get('product')
+
+        if product and quantity > product.quantity:
+            raise ValidationError(f"Only {product.quantity} units available in stock.")
+        return quantity
+
+
+# 👇 You can define this formset near the bottom of forms.py
+SaleItemFormSet = modelformset_factory(
+    SaleItem,
+    form=SaleItemForm,
+    extra=100,
+    can_delete=False
+)
+
 
 class BottleReturnForm(forms.ModelForm):
     class Meta:

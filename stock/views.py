@@ -155,40 +155,87 @@ def manage_products(request):
 
 
 # --- UPDATED manage_sales view ---
+from django.forms import modelformset_factory
+from django.db import transaction as db_transaction
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.db import connection
+from .forms import SalesTransactionForm
+from .models import Transaction, Product, Sale, SaleItem
+
+
 @login_required
 def manage_sales(request):
     if request.user.role not in ['cashier', 'manager']:
         messages.warning(request, "You don't have permission to access this page.")
         return redirect('dashboard')
 
+    # Create a formset of your existing form
+    SalesFormSet = modelformset_factory(Transaction, form=SalesTransactionForm, extra=3, can_delete=False)
+
     if request.method == 'POST':
-        form = SalesTransactionForm(request.POST)
-        if form.is_valid():
-            sale = form.save(commit=False)
-            sale.tenant = connection.tenant
-            sale.transaction_type = 'sale'
-            sale.created_by = request.user
+        formset = SalesFormSet(request.POST, queryset=Transaction.objects.none())
+        if formset.is_valid():
+            try:
+                with db_transaction.atomic():
+                    # Create a parent Sale record
+                    sale = Sale.objects.create(
+                        tenant=connection.tenant,
+                        created_by=request.user
+                    )
 
-            product = sale.product
+                    total = 0
+                    for form in formset:
+                        if not form.cleaned_data:
+                            continue
 
-            # ✅ Validate stock before saving
-            if product.quantity < sale.quantity:
-                form.add_error('quantity', 'Insufficient stock for this sale.')
-            else:
-                sale.save()  # Save transaction
-                # ✅ Adjust product stock
-                product.quantity -= sale.quantity
-                product.save()
-                # ✅ Redirect to receipt
-                return redirect('sales_receipt', sale_id=sale.id)
+                        product = form.cleaned_data['product']
+                        quantity = form.cleaned_data['quantity']
+
+                        # Stock check
+                        if product.quantity < quantity:
+                            raise ValueError(f"Insufficient stock for {product.name}")
+
+                        # Create SaleItem (linking multiple items to this sale)
+                        item = SaleItem.objects.create(
+                            sale=sale,
+                            product=product,
+                            quantity=quantity,
+                            price=product.price,
+                            deposit_amount=product.deposit_amount,
+                            subtotal=(product.price + product.deposit_amount) * quantity
+                        )
+
+                        # Log Transaction for backward compatibility
+                        Transaction.objects.create(
+                            tenant=connection.tenant,
+                            product=product,
+                            quantity=quantity,
+                            transaction_type='sale',
+                            created_by=request.user
+                        )
+
+                        total += item.subtotal
+
+                    sale.total_amount = total
+                    sale.save()
+
+                    messages.success(request, f"Sale recorded successfully! Total ₦{sale.total_amount:,.2f}")
+                    return render(request, 'stock/sales_receipt.html', {'sale': sale})
+
+            except Exception as e:
+                messages.error(request, f"Error saving sale: {str(e)}")
         else:
-            messages.error(request, "Invalid form submission. Please check all fields.")
+            messages.error(request, "Please correct errors in the form.")
     else:
-        form = SalesTransactionForm()
+        formset = SalesFormSet(queryset=Transaction.objects.none())
 
-    transactions = Transaction.objects.filter(transaction_type='sale').select_related('product', 'created_by').order_by('-timestamp')[:50]
+    transactions = Transaction.objects.filter(
+        transaction_type='sale'
+    ).select_related('product', 'created_by').order_by('-timestamp')[:50]
 
-    context = {'form': form, 'transactions': transactions}
+    context = {'formset': formset, 'transactions': transactions}
     return render(request, 'stock/manage_sales.html', context)
 
 

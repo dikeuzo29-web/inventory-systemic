@@ -150,6 +150,7 @@
         <p>Oyigbo, Rivers State</p>
         <p>{{ sale.timestamp|date:"M d, Y H:i" }}</p>
     </div>
+
     <hr class="receipt-divider">
 
     <div class="receipt-meta">
@@ -170,7 +171,7 @@
                 <tr>
                     <th align="left">Product</th>
                     <th align="right">Qty</th>
-                    <th align="right">Price</th>
+                    <th align="right">Unit Price</th>
                     <th align="right">Subtotal</th>
                 </tr>
             </thead>
@@ -179,12 +180,12 @@
                 <tr>
                     <td>{{ item.product.name }}</td>
                     <td align="right">{{ item.quantity }}</td>
-                    <td align="right">₦{{ item.product.price|floatformat:2|intcomma }}</td>
-                    <td align="right">₦{{ item.amount|floatformat:2|intcomma }}</td>
+                    <td align="right">₦{{ item.price|floatformat:2|intcomma }}</td>
+                    <td align="right">₦{{ item.subtotal|floatformat:2|intcomma }}</td>
                 </tr>
                 {% if item.deposit_amount > 0 %}
                 <tr>
-                    <td colspan="3" align="right">Container Deposit</td>
+                    <td colspan="3" align="right"><em>Container Deposit</em></td>
                     <td align="right">₦{{ item.deposit_amount|floatformat:2|intcomma }}</td>
                 </tr>
                 {% endif %}
@@ -198,25 +199,29 @@
     <div class="receipt-summary">
         <dl class="info-grid">
             <dt>Subtotal:</dt>
-            <dd>₦{{ sale.items.all|map:'amount'|sum|floatformat:2|intcomma }}</dd>
+            <dd>₦{{ sale.items.all|aggregate_sum:'subtotal'|floatformat:2|intcomma }}</dd>
 
-            {% if sale.items.all|map:'deposit_amount'|sum > 0 %}
+            {% with deposit_total=sale.items.all|aggregate_sum:'deposit_amount' %}
+            {% if deposit_total > 0 %}
             <dt>Deposit Total:</dt>
-            <dd>₦{{ sale.items.all|map:'deposit_amount'|sum|floatformat:2|intcomma }}</dd>
+            <dd>₦{{ deposit_total|floatformat:2|intcomma }}</dd>
             {% endif %}
+            {% endwith %}
             
             <dt class="grand-total">Total Paid:</dt>
             <dd class="grand-total">₦{{ sale.total_amount|floatformat:2|intcomma }}</dd>
         </dl>
     </div>
 
-    {% if sale.items.all|map:'deposit_amount'|sum > 0 %}
+    {% with deposit_total=sale.items.all|aggregate_sum:'deposit_amount' %}
+    {% if deposit_total > 0 %}
     <div class="deposit-notice">
         <p><strong>Deposit Information:</strong></p>
-        <p>You paid ₦{{ sale.items.all|map:'deposit_amount'|sum|floatformat:2|intcomma }} as container deposit. 
+        <p>You paid ₦{{ deposit_total|floatformat:2|intcomma }} as container deposit. 
         Present this receipt when returning empty containers for your refund.</p>
     </div>
     {% endif %}
+    {% endwith %}
 
     <hr class="receipt-divider">
 

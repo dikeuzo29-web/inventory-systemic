@@ -13,3 +13,11 @@ def mul(value, arg):
         return Decimal(value) * Decimal(arg)
     except (ValueError, TypeError):
         return Decimal(0) # Return 0 or handle error appropriately if conversion fails
+
+@register.filter
+def aggregate_sum(queryset, field_name):
+    """
+    Returns the sum of a given field for any queryset.
+    Example: sale.items.all|aggregate_sum:'subtotal'
+    """
+    return queryset.aggregate(total=Sum(field_name))['total'] or 0
