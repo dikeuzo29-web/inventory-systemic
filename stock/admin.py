@@ -18,3 +18,22 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ('name', 'description')
     ordering = ('name',)
 
+@admin.register(Sale)
+class SaleAdmin(admin.ModelAdmin):
+    list_display = ('id', 'timestamp', 'total_amount', 'payment_method', 'tenant')
+    search_fields = ('id',)
+    list_filter = ('payment_method',)
+
+
+@admin.register(SaleItem)
+class SaleItemAdmin(admin.ModelAdmin):
+    list_display = ('sale', 'product', 'quantity', 'subtotal')
+    search_fields = ('sale__id', 'product__name')
+
+
+@admin.register(Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+    list_display = ('transaction_type', 'product', 'quantity', 'amount', 'timestamp', 'tenant')
+    list_filter = ('transaction_type', 'timestamp', 'tenant')
+    search_fields = ('product__name', 'notes')
+
