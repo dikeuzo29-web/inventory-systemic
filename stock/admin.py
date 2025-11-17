@@ -1,6 +1,6 @@
 # stock/admin.py
 from django.contrib import admin
-from .models import Category, Product
+from .models import Category, Product, Transaction, Sale, SaleItem
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
