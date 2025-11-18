@@ -328,7 +328,7 @@ PWA_APP_ICONS = [
 # Important: Point to your service worker
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static', 'js', 'serviceworker.js')
+PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static', 'serviceworker.js')
 
 # Add (or update) this line:
 LOGIN_URL = '/api/accounts/login/'
