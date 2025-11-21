@@ -103,6 +103,14 @@
       } catch (error) {
         console.error('Error fetching pending count for offline page:', error);
       }
+      // Ensure this matches the service worker queue logic
+      if (typeof window !== 'undefined') {
+          // Initialize offline DB for queuing
+          window.offlineDB = new Dexie('OfflineQueue');
+          window.offlineDB.version(1).stores({
+              offlineRequests: '++id, url, method, timestamp'
+          });
+      }
     });
   </script>
 </body>

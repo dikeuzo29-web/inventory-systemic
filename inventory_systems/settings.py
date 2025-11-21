@@ -182,31 +182,32 @@ import dj_database_url
 # }
 
 # DATABASES["default"]["ENGINE"] = "django_tenants.postgresql_backend"
-
 DATABASE_ROUTERS = ["django_tenants.routers.TenantSyncRouter"]
 
-if env.bool("RUNNING_LOCALLY", default=False):
-    DATABASES = {
-        "default": {
-            "ENGINE": "django_tenants.postgresql_backend",   # ✅ Tenant backend
-            "NAME": env("DB_NAME", default="postgres"),
-            "USER": env("DB_USER", default="postgres"),
-            "PASSWORD": env("DB_PASSWORD", default="postgres"),
-            "HOST": env("DB_HOST", default="localhost"),
-            "PORT": env("DB_PORT", default="5432"),
-        }
+DATABASES = {
+    "default": {
+        "ENGINE": "django_tenants.postgresql_backend",
+        "NAME": env("DB_NAME"),
+        "USER": env("DB_USER"),
+        "PASSWORD": env("DB_PASSWORD"),
+        "HOST": env("DB_HOST"),
+        "PORT": env("DB_PORT", default="5432"),
+        "OPTIONS": {
+            "sslmode": "require",
+        },
     }
-else:
-    DATABASES = {
-        "default": dj_database_url.config(
-            default=env("DATABASE_URL"),
-            conn_max_age=600,
-            ssl_require=True,
-        )
-    }
+}
 
-    # ✅ Force tenant backend in production too
+# Override with DATABASE_URL in production
+if not env.bool("RUNNING_LOCALLY", default=False):
+    DATABASES["default"] = dj_database_url.config(
+        default=env("DATABASE_URL"),
+        conn_max_age=600,
+        ssl_require=True,
+    )
+    # Force django-tenants backend again, because dj_database_url removes it
     DATABASES["default"]["ENGINE"] = "django_tenants.postgresql_backend"
+
 
 
 
