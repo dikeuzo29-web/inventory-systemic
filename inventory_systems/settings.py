@@ -187,18 +187,22 @@ RUNNING_LOCALLY = env.bool("RUNNING_LOCALLY", default=False)
 import dj_database_url
 import os
 
+DATABASE_ROUTERS = ["django_tenants.routers.TenantSyncRouter"]
+
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
+    "default": dj_database_url.config(
+        default=os.environ.get("DATABASE_URL"),
         conn_max_age=600,
-        # conn_health_checks=True,
+        ssl_require=True,
     )
 }
 
-# Override for django-tenants
-DATABASES['default']['ENGINE'] = 'django_tenants.postgresql_backend'
+# Force django-tenants backend
+DATABASES["default"]["ENGINE"] = "django_tenants.postgresql_backend"
 
-DATABASE_ROUTERS = ["django_tenants.routers.TenantSyncRouter"]
+# Ensure SSL mode (Neon requires this)
+DATABASES["default"]["OPTIONS"] = {"sslmode": "require"}
+
 
 
 
@@ -294,6 +298,25 @@ LOGGING = {
         },
     },
 }
+
+# Add to settings.py for better error reporting
+import sys
+
+if not DEBUG:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+                'stream': sys.stdout,
+            },
+        },
+        'root': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+    }
 
 # inventory_systems/settings.py
 
