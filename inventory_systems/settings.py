@@ -190,7 +190,7 @@ DATABASES = {
         'NAME': 'neondb',
         'USER': 'neondb_owner',
         'PASSWORD': 'mpg_6aMREAScisd8',
-        'HOST': 'ep-calm-voice-ab15241x-pooler.eu-west-2.ams.neon.tech',
+        'HOST': 'ep-calm-voice-ab15241x-pooler.eu-west-2.aws.neon.tech',
         'PORT': '5432',
         'OPTIONS': {'sslmode': 'require'},
     }
