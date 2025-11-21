@@ -1,6 +1,8 @@
 # tenants/views.py
 from django.http import HttpResponse
 from .models import Client, Domain
+from django_tenants.utils import schema_context
+from accounts.models import CustomUser  # your user model
 
 def setup_initial_tenant(request):
     # Check if the tenant already exists to avoid errors
