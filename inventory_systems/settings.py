@@ -156,7 +156,6 @@ RUNNING_LOCALLY = env.bool("RUNNING_LOCALLY", default=False)
 #     }
 # }
 # settings.py
-import dj_database_url
 
 # # Load the database configuration from the DATABASE_URL environment variable.
 # DATABASES = {
@@ -184,17 +183,20 @@ import dj_database_url
 
 # DATABASES["default"]["ENGINE"] = "django_tenants.postgresql_backend"
 
+# Database Configuration - SIMPLIFIED
+import dj_database_url
+import os
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django_tenants.postgresql_backend',
-        'NAME': 'neondb',
-        'USER': 'neondb_owner',
-        'PASSWORD': 'npg_6aWREAScis0B',
-        'HOST': 'ep-calm-voice-ab15241x-pooler.eu-west-2.aws.neon.tech',
-        'PORT': '5432',
-        'OPTIONS': {'sslmode': 'require'},
-    }
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
+
+# Override for django-tenants
+DATABASES['default']['ENGINE'] = 'django_tenants.postgresql_backend'
 
 DATABASE_ROUTERS = ["django_tenants.routers.TenantSyncRouter"]
 
