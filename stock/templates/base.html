@@ -5,630 +5,388 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}Inventory System{% endblock %}</title>
+    <title>{% block title %}InventoryPro - Smart Stock Management{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <!-- Progressive Web App -->
     <link rel="manifest" href="/pwa/manifest.json">
     <link rel="icon" href="{% static 'favicon.ico' %}" />
     <script src="{% static 'js/dexie.min.js' %}"></script>
     <script src="https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('{% static "serviceworker.js" %}').then(function(registration) {
-                    // Registration was successful
-                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                }, function(err) {
-                    // registration failed :(
-                    console.log('ServiceWorker registration failed: ', err);
-                });
-            });
-        }
-    </script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
-        /* Define CSS variables for easier color management */
-        :root {
-            --primary-color: #0d6efd;
-            /* A standard, slightly deeper blue */
-            --primary-color-rgb: 13, 110, 253;
-            /* RGB value for --primary-color (for rgba shadows) */
-            --primary-dark-color: #0a58ca;
-            /* Darker shade for hover */
-            --secondary-color: #6c757d;
-            /* A muted grey */
-            --secondary-light-color: #e9ecef;
-            /* For background elements */
-            --danger-color: #dc3545;
-            /* A red for actions like logout */
-            --danger-dark-color: #c82333;
-            /* Darker shade for hover */
-            --light-bg: #f8f9fa;
-            /* Very light grey background */
-            --white-bg: #fff;
-            /* White background for elements */
-            --dark-text: #212529;
-            /* Darker text for better contrast */
-            --text-muted: #6c757d;
-            /* Muted text */
-            --border-color: #dee2e6;
-            /* Light border color */
-            --shadow-sm: 0 .125rem .25rem rgba(0, 0, 0, .075);
-            /* Small shadow */
-            --shadow: 0 .5rem 1rem rgba(0, 0, 0, .08);
-            /* Larger shadow */
-            --gray-100: #f8f9fa;
-            /* Alias for light-bg */
-            --gray-200: #e9ecef;
-        }
-
-        /* Apply a box-sizing model that includes padding and border */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
         * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
         }
 
-        body {
-            margin: 0;
-            font-family: 'Roboto', sans-serif;
-            /* Use the imported Google font */
-            line-height: 1.6;
-            /* Improve readability */
-            color: var(--dark-text);
-            background-color: var(--light-bg);
-            /* Apply light background color */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-color: #667eea;
+            --primary-dark: #5a67d8;
+            --secondary-color: #764ba2;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --info-color: #3b82f6;
+            --white: #ffffff;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
         }
 
-        /* --- Navigation Bar Styles --- */
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: var(--primary-gradient);
+            min-height: 100vh;
+            color: var(--gray-800);
+            line-height: 1.6;
+        }
+
+        /* Navigation */
         nav {
-            background: var(--white-bg);
-            /* White background for navbar */
-            padding: 15px 30px;
-            /* More vertical and horizontal padding */
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--glass-border);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: var(--shadow-sm);
-            /* Add a subtle shadow below the nav */
             flex-wrap: wrap;
-            /* Allow nav items to wrap on smaller screens */
-            border-bottom: 1px solid var(--border-color);
-            /* Add a subtle bottom border */
+            gap: 1rem;
         }
 
-        /* Style the main links container */
-        nav .nav-links {
+        .nav-brand {
             display: flex;
             align-items: center;
-            flex-wrap: wrap;
-            /* Allow links to wrap */
-        }
-
-        /* Style individual navigation links */
-        nav .nav-links a {
-            margin-right: 20px;
-            /* Space between links */
+            gap: 0.75rem;
             text-decoration: none;
-            color: var(--text-muted);
-            /* Use muted text for standard links */
-            font-weight: 400;
-            /* Standard font weight */
-            transition: color 0.3s ease, border-bottom 0.3s ease;
-            /* Smooth color and border transition */
-            padding: 5px 0;
-            /* Add vertical padding for clickable area */
-            display: flex;
-            /* Use flex to align icon and text */
-            align-items: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.25rem;
         }
 
-        nav .nav-links a:last-child {
-            margin-right: 0;
-            /* Remove margin after the last link */
-        }
-
-        /* Style for the active navigation link */
-        /* You'll need to add a class like 'active' to the link of the currently viewed page */
-        nav .nav-links a.active {
-            color: var(--primary-color);
-            /* Use primary color for active link */
-            font-weight: 700;
-            /* Bold for active link */
-            border-bottom: 2px solid var(--primary-color);
-            /* Highlight active link */
-            padding-bottom: 3px;
-            /* Adjust padding to make space for border */
-        }
-
-        /* Hover effect for nav links (not on active links) */
-        nav .nav-links a:hover:not(.active) {
-            color: var(--dark-text);
-            /* Darker color on hover */
-        }
-
-        nav .nav-links a i {
-            margin-right: 8px;
-            /* Space between icon and text */
-            font-size: 1.1em;
-            /* Slightly larger icons */
-            color: var(--secondary-color);
-            /* Color the icons */
-            transition: color 0.3s ease;
-        }
-
-        /* Color icons primary on hover and when the link is active */
-        nav .nav-links a:hover i,
-        nav .nav-links a.active i {
-            color: var(--primary-color);
-        }
-
-
-        /* Style the container for actions (Welcome, Logout) */
-        nav .nav-actions {
-            display: flex;
-            /* Use flex for layout */
-            align-items: center;
-            /* Use auto margin to push actions block to the right */
-            margin-left: auto;
-            gap: 20px;
-            /* Space between action items (Welcome message and Logout) */
-        }
-
-        /* Style the welcome message span */
-        nav .nav-actions span {
-            font-style: normal;
-            /* Ensure it's not italic */
-            color: var(--dark-text);
-            font-weight: 400;
-            /* Standard weight */
-        }
-
-        nav .nav-actions span strong {
-            font-weight: 700;
-            /* Make username bold */
-        }
-
-
-        /* Ensure the logout form is displayed inline */
-        nav .nav-actions form {
-            display: inline-block;
-            margin: 0;
-            /* Remove default form margin */
-        }
-
-        /* Style the logout button to look like a link */
-        nav .nav-actions form button {
-            background: none;
-            /* No background */
-            border: none;
-            /* No border */
-            padding: 0;
-            /* Remove default button padding */
-            color: var(--text-muted);
-            /* Muted color for logout link initially */
-            font-weight: 400;
-            cursor: pointer;
-            /* Indicate it's clickable */
-            text-decoration: none;
-            transition: color 0.3s ease;
-            font-size: 1rem;
-            /* Match link font size */
-            font-family: inherit;
-            /* Inherit font from body */
-            display: flex;
-            /* Use flex to align icon and text */
-            align-items: center;
-        }
-
-        /* Hover effect for logout button */
-        nav .nav-actions form button:hover {
-            color: var(--danger-color);
-            /* Change to danger color on hover */
-            text-decoration: underline;
-            /* Underline on hover */
-        }
-
-        nav .nav-actions form button i {
-            margin-right: 8px;
-            font-size: 1.1em;
-            color: var(--danger-color);
-            /* Color the logout icon */
-        }
-
-
-        nav .nav-actions a {
-            /* Style for the Login link */
-            text-decoration: none;
-            color: var(--text-muted);
-            font-weight: 400;
-            display: flex;
-            align-items: center;
-            transition: color 0.3s ease;
-        }
-
-        nav .nav-actions a i {
-            margin-right: 8px;
-            font-size: 1.1em;
-            color: var(--primary-color);
-        }
-
-        nav .nav-actions a:hover {
-            color: var(--primary-color);
-            text-decoration: underline;
-        }
-
-
-        /* --- Main Content Container Styles --- */
-        .container {
-            padding: 30px;
-            /* Consistent padding inside the container */
-            max-width: 1200px;
-            /* Set a maximum width for larger screens */
-            margin: 30px auto;
-            /* Center the container and add vertical margin */
-            background: var(--white-bg);
-            /* White background for the content area */
-            box-shadow: var(--shadow-sm);
-            /* Use small shadow for a cleaner look */
+        .nav-brand img {
             border-radius: 8px;
-            /* Rounded corners */
-            border: 1px solid var(--border-color);
-            /* Add a subtle border */
         }
 
-        /* Basic styling for headings within the container */
-        .container h1 {
-            font-size: 1.8rem;
-            /* Slightly smaller main heading */
-            font-weight: 700;
-            /* Bold */
-            color: var(--dark-text);
-            margin-top: 0;
-            /* Remove top margin from first element */
-            margin-bottom: 1.5rem;
-            /* More space below main heading */
-            padding-bottom: 0.5rem;
-            /* Add padding below heading */
-            border-bottom: 1px solid var(--border-color);
-            /* Add a subtle line below heading */
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
         }
 
-        .container h2 {
-            font-size: 1.5rem;
-            /* Smaller subheading */
-            font-weight: 700;
-            color: var(--dark-text);
-            margin-bottom: 1rem;
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
         }
 
-        .container h3 {
-            font-size: 1.2rem;
-            /* Even smaller sub-subheading */
-            font-weight: 700;
-            color: var(--dark-text);
-            margin-bottom: 1rem;
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
         }
 
-
-        .container p {
-            margin-bottom: 1rem;
-            /* Space below paragraphs */
-            color: var(--dark-text);
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            font-weight: 600;
         }
 
-        /* --- List Styles (used in content) --- */
-        .container ul {
-            padding-left: 0;
-            /* Remove default list padding */
-            list-style: none;
-            /* Remove default list bullets */
-            margin-bottom: 1rem;
+        .nav-link i {
+            font-size: 1.1em;
         }
 
-        .container li {
-            margin-bottom: 0.75rem;
-            /* Space between list items */
-            padding-left: 1.5rem;
-            /* Space for custom bullet/icon */
-            position: relative;
-            /* Needed for custom bullet/icon positioning */
-            color: var(--dark-text);
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: white;
         }
 
-        /* Add a custom bullet point or icon */
-        .container li::before {
-            content: '\f105';
-            /* Font Awesome right chevron icon unicode */
-            font-family: 'Font Awesome 6 Free';
-            /* Specify Font Awesome font */
-            font-weight: 900;
-            /* Solid icon weight */
-            color: var(--primary-color);
-            /* Color the bullet/icon */
-            display: inline-block;
-            width: 1em;
-            /* Space allocated for the bullet */
-            margin-left: -1.5em;
-            /* Pull the bullet back into the padding space */
-            position: absolute;
-            left: 0;
-            top: 0;
-            /* Align icon to the top of the line */
+        .welcome-text {
+            font-weight: 500;
         }
 
-
-        /* --- Form Styles --- */
-        form p {
-            margin-bottom: 1rem;
-            /* Space between form groups (label + input) */
-        }
-
-        form label {
-            display: block;
-            /* Make labels appear on their own line */
-            margin-bottom: 0.5rem;
-            /* Space between label and the input field below it */
-            font-weight: 700;
-            /* Make labels bold */
-            color: var(--dark-text);
-            /* Use dark text color for labels */
-        }
-
-        /* Style for input fields, select boxes, and textareas */
-        form input:not([type="submit"]),
-        /* Exclude the submit button */
-        form select,
-        form textarea {
-            display: block;
-            /* Make inputs appear on their own line */
-            width: 100%;
-            /* Make input fields take the full width available */
-            padding: 0.75rem 1rem;
-            /* Add internal padding */
-            font-size: 1rem;
-            line-height: 1.5;
-            color: var(--dark-text);
-            /* Text color inside inputs */
-            background-color: var(--white-bg);
-            /* White background for inputs */
-            background-clip: padding-box;
-            border: 1px solid var(--border-color);
-            /* Subtle border */
-            border-radius: 0.25rem;
-            /* Small rounded corners */
-            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-            /* Smooth transition for focus effect */
-            -webkit-appearance: none;
-            /* Remove default browser styling for inputs */
-            -moz-appearance: none;
-            appearance: none;
-        }
-
-        /* Style for input fields, select boxes, and textareas when they are focused */
-        form input:focus,
-        form select:focus,
-        form textarea:focus {
-            color: var(--dark-text);
-            background-color: var(--white-bg);
-            border-color: var(--primary-color);
-            /* Highlight border with primary color on focus */
-            outline: 0;
-            /* Remove default outline */
-            /* Add a subtle glowing effect using box-shadow with RGB value of primary color */
-            box-shadow: 0 0 0 0.25rem rgba(var(--primary-color-rgb), .25);
-        }
-
-        /* Style for the submit button */
-        form button[type="submit"] {
-            display: inline-block;
-            /* Make button inline-block */
-            font-weight: 400;
-            line-height: 1.5;
-            color: var(--white-bg);
-            /* White text on button */
-            background-color: var(--primary-color);
-            /* Primary color background */
-            border: 1px solid var(--primary-color);
-            /* Border matching background */
-            padding: 0.75rem 1.5rem;
-            /* Add padding */
-            font-size: 1rem;
-            border-radius: 0.25rem;
-            /* Rounded corners */
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.2);
+            color: white;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
             cursor: pointer;
-            /* Indicate it's clickable */
-            transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
         }
 
-        /* Hover effect for the submit button */
-        form button[type="submit"]:hover {
-            color: var(--white-bg);
-            background-color: var(--primary-dark-color);
-            /* Darker primary on hover */
-            border-color: var(--primary-dark-color);
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.3);
+            transform: translateY(-1px);
         }
 
-        /* Focus effect for the submit button */
-        form button[type="submit"]:focus {
-            outline: 0;
-            /* Add a slightly more pronounced glowing effect on focus */
-            box-shadow: 0 0 0 0.25rem rgba(var(--primary-color-rgb), .5);
+        .login-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
         }
 
-
-        /* --- Table Styles --- */
-
-        table {
-            width: 100%;
-            /* Make table take the full width of its container */
-            border-collapse: collapse;
-            /* Collapse borders between cells */
-            margin-bottom: 1rem;
-            /* Space below the table */
-            color: var(--dark-text);
-            /* Default text color for table */
-            border: 1px solid var(--border-color);
-            /* Add a border around the entire table */
-            border-radius: 0.25rem;
-            /* Small rounded corners for the table */
-            overflow: hidden;
-            /* Helps rounded corners apply correctly with borders */
-            box-shadow: var(--shadow-sm);
-            /* Subtle shadow for the table */
+        .login-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
         }
 
-        table thead {
-            background-color: var(--secondary-light-color);
-            /* Light background for the table header */
-            border-bottom: 2px solid var(--border-color);
-            /* Thicker border below the header */
+        /* Main Container */
+        .main-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
         }
 
-        table th {
-            padding: 0.75rem;
-            /* Padding inside header cells */
-            text-align: left;
-            /* Align header text to the left */
+        .content-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 2rem;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--gray-100);
+        }
+
+        .page-title {
+            font-size: 1.875rem;
             font-weight: 700;
-            /* Bold header text */
-            color: var(--dark-text);
-            /* Dark text for headers */
+            color: var(--gray-800);
+            margin-bottom: 0.5rem;
         }
 
-        table td {
-            padding: 0.75rem;
-            /* Padding inside data cells */
-            border-bottom: 1px solid var(--border-color);
-            /* Border between rows in the body */
+        .page-subtitle {
+            color: var(--gray-600);
+            font-size: 1.125rem;
         }
 
-        /* Remove the bottom border from the last row in the table body */
-        table tbody tr:last-child td {
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--white);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--error-color);
+            color: white;
+        }
+
+        /* Tables */
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+        }
+
+        .table th {
+            background: var(--gray-50);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--gray-700);
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .table tbody tr:hover {
+            background: var(--gray-50);
+        }
+
+        .table tbody tr:last-child td {
             border-bottom: none;
         }
 
-        /* Add zebra striping to the table body for better readability */
-        table tbody tr:nth-child(even) {
-            background-color: var(--gray-100);
-            /* Apply a light background to even rows */
+        /* Messages */
+        .messages-container {
+            margin-bottom: 2rem;
         }
 
-        /* Style for the 'No sales recorded yet' cell */
-        table td[colspan] {
-            /* Target any cell with a colspan attribute */
-            text-align: center;
-            /* Center the text */
-            font-style: italic;
-            /* Italicize the text */
-            color: var(--text-muted);
-            /* Muted color for this message */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            font-weight: 500;
         }
 
-        /* Optional: Hover effect on table rows */
-        table tbody tr:hover {
-            background-color: var(--gray-200);
-            /* Slightly darker background on hover */
+        .alert-success {
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
         }
 
-        /* Responsive table wrapper - Add a div with this class around your table in the template */
-        .table-responsive {
-            overflow-x: auto;
-            /* Add horizontal scrollbar if table content overflows */
-            -webkit-overflow-scrolling: touch;
-            /* Improve scrolling on touch devices */
+        .alert-error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
         }
 
+        .alert-warning {
+            background: #fffbeb;
+            color: #92400e;
+            border: 1px solid #fed7aa;
+        }
 
-        /* --- Simple Responsiveness --- */
+        .alert-info {
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #dbeafe;
+        }
+
+        /* Mobile Responsive */
         @media (max-width: 768px) {
             nav {
+                padding: 1rem;
                 flex-direction: column;
-                /* Stack nav items vertically */
-                align-items: flex-start;
-                /* Align stacked items to the left */
-                padding: 15px;
-                /* Reduce padding on smaller screens */
+                align-items: stretch;
             }
 
-            nav .nav-links {
-                width: 100%;
-                /* Links take full width when stacked */
-                margin-bottom: 15px;
-                /* Space below the stacked links */
+            .nav-links {
                 flex-direction: column;
-                /* Stack individual links vertically */
-                align-items: flex-start;
+                gap: 0.5rem;
             }
 
-            nav .nav-links a {
-                margin-right: 0;
-                /* Remove horizontal margin when stacked */
-                margin-bottom: 8px;
-                /* Add vertical margin between stacked links */
-            }
-
-            nav .nav-links a:last-child {
-                margin-bottom: 0;
-                /* No bottom margin after the last link in the stacked list */
-            }
-
-            nav .nav-actions {
-                width: 100%;
-                /* Actions take full width */
-                margin-left: 0;
-                /* Remove auto margin */
+            .nav-link {
                 justify-content: flex-start;
-                /* Align actions to the left */
-                gap: 10px;
-                /* Reduce gap between action items */
-                margin-top: 10px;
-                /* Add space above actions when stacked */
-                padding-top: 10px;
-                /* Add padding top */
-                border-top: 1px solid var(--border-color);
-                /* Add a top border when stacked */
             }
 
-            .container {
-                padding: 15px;
-                /* Reduce container padding on small screens */
-                margin: 15px auto;
-                /* Reduce container margin */
-                border-radius: 0;
-                /* Remove rounded corners on small screens */
-                box-shadow: none;
-                /* Remove shadow on small screens */
-                border: none;
-                /* Remove border on small screens */
+            .nav-actions {
+                justify-content: center;
+                margin-top: 1rem;
+                padding-top: 1rem;
+                border-top: 1px solid var(--glass-border);
             }
 
-            .container h1 {
+            .main-container {
+                margin: 1rem auto;
+                padding: 0 0.5rem;
+            }
+
+            .content-card {
+                padding: 1.5rem;
+                border-radius: 12px;
+            }
+
+            .page-title {
                 font-size: 1.5rem;
-                /* Smaller heading on small screens */
-                margin-bottom: 1rem;
-                padding-bottom: 0.25rem;
             }
 
-            .container li {
-                padding-left: 1em;
-                /* Adjust padding */
-                margin-bottom: 0.5rem;
+            .table th,
+            .table td {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.875rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .content-card {
+                padding: 1rem;
             }
 
-            .container li::before {
-                margin-left: -1em;
-                /* Adjust bullet position */
-            }
-
-            table th,
-            table td {
-                padding: 0.5rem;
-                /* Reduce padding in cells */
-                font-size: 0.9rem;
-                /* Reduce font size */
+            .btn {
+                width: 100%;
+                justify-content: center;
             }
         }
     </style>
@@ -636,59 +394,129 @@
 
 <body>
     <nav>
-        <div class="nav-links">
-            <a href="{% url 'accounts:dashboard' %}" class="nav-logo">
-                <img src="{% static 'image/itekton-logo.jpg' %}" alt="Logo" height="30"
-                    style="vertical-align: middle; margin-right: 10px;">
-                <strong style="vertical-align: middle;">Inventory System</strong>
-            </a>
-            {% if user.is_authenticated %}
-            {# Add 'active' class to the link that matches the current page using your template logic #}
-            <a href="{% url 'accounts:dashboard' %}" {% if request.resolver_match.url_name == 'dashboard' %}class="active" {% endif
-                %}><i class="fas fa-chart-line"></i> Dashboard</a>
-            {% if user.role == 'manager' %}
-            <a href="{% url 'manage_categories' %}" {% if request.resolver_match.url_name=='manage_categories'
-                %}class="active" {% endif %}><i class="fas fa-tags"></i> Manage Categories</a>
-            <a href="{% url 'manage_products' %}" {% if request.resolver_match.url_name=='manage_products'
-                %}class="active" {% endif %}><i class="fas fa-boxes"></i> Manage Products</a>
-            <a href="{% url 'manage_bottle_returns' %}">Returns</a>
-            {% endif %}
-            {# Consider changing these to named URLs if possible for better icon/active state handling #}
-            <a href="/api/stock/sales/"><i class="fas fa-shopping-cart"></i> Sales</a>
-            {# Consider changing these to named URLs if possible for better icon/active state handling #}
-            <a href="/api/stock/restock/"><i class="fas fa-truck"></i> Restock</a>
+        <a href="{% url 'accounts:dashboard' %}" class="nav-brand">
+            <img src="{% static 'image/itekton-logo.jpg' %}" alt="InventoryPro Logo" height="35">
+            <span>InventoryPro</span>
+        </a>
 
+        {% if user.is_authenticated %}
+        <div class="nav-links">
+            <a href="{% url 'accounts:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i class="fas fa-chart-line"></i>
+                Dashboard
+            </a>
+            
+            {% if user.role == 'manager' %}
+            <a href="{% url 'manage_categories' %}" class="nav-link {% if request.resolver_match.url_name == 'manage_categories' %}active{% endif %}">
+                <i class="fas fa-tags"></i>
+                Categories
+            </a>
+            <a href="{% url 'manage_products' %}" class="nav-link {% if request.resolver_match.url_name == 'manage_products' %}active{% endif %}">
+                <i class="fas fa-boxes"></i>
+                Products
+            </a>
+            {% endif %}
+            
+            {% if user.role == 'cashier' or user.role == 'manager' %}
+            <a href="/api/stock/sales/" class="nav-link">
+                <i class="fas fa-shopping-cart"></i>
+                Sales
+            </a>
+            <a href="{% url 'manage_bottle_returns' %}" class="nav-link">
+                <i class="fas fa-recycle"></i>
+                Returns
+            </a>
+            {% endif %}
+            
+            {% if user.role == 'manager' %}
+            <a href="/api/stock/restock/" class="nav-link">
+                <i class="fas fa-truck"></i>
+                Restock
+            </a>
+            {% endif %}
         </div>
+        {% endif %}
+
         <div class="nav-actions">
             {% if user.is_authenticated %}
-            <span>Welcome, <strong>{{ user.username }}</strong></span>
-            <form method="post" action="{% url 'accounts:logout' %}">
+            <span class="welcome-text">Welcome, <strong>{{ user.username }}</strong></span>
+            <form method="post" action="{% url 'accounts:logout' %}" style="display: inline;">
                 {% csrf_token %}
-                <button type="submit">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+                <button type="submit" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
                 </button>
             </form>
             {% else %}
-            <a href="{% url 'accounts:login' %}"><i class="fas fa-sign-in-alt"></i> Login</a>
+            <a href="{% url 'accounts:login' %}" class="login-btn">
+                <i class="fas fa-sign-in-alt"></i>
+                Login
+            </a>
             {% endif %}
         </div>
     </nav>
 
-    <div class="container">
-        {% block content %}
-        {# Content from child templates will go here #}
-        {% endblock %}
+    <div class="main-container">
+        <div class="content-card">
+            <!-- Messages Display -->
+            {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Page Header -->
+            {% block page_header %}
+            <div class="page-header">
+                <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
+                <p class="page-subtitle">{% block page_subtitle %}Manage your inventory efficiently{% endblock %}</p>
+            </div>
+            {% endblock %}
+
+            <!-- Main Content -->
+            {% block content %}
+            <!-- Content from child templates will go here -->
+            {% endblock %}
+        </div>
     </div>
 
-</body>
-<script>
-    if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/serviceworker.js', { scope: '/' })
-        .then(registration => console.log('SW registered'))
-        .catch(error => console.log('SW registration failed'));
-}
+    <!-- Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('{% static "serviceworker.js" %}')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(function(err) {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+
+        // Add hover effects for better UX
+        document.addEventListener('DOMContentLoaded', function() {
+            const interactiveElements = document.querySelectorAll('.nav-link, .btn, .logout-btn, .login-btn');
+            
+            interactiveElements.forEach(element => {
+                element.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                
+                element.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
     </script>
 
-    
+    {% block extra_scripts %}
+    <!-- Extra scripts from child templates -->
+    {% endblock %}
 
+</body>
 </html>
