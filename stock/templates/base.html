@@ -118,7 +118,9 @@
 <!-- ==========================
      FLOATING ACTION BUTTON (FAB)
 =========================== -->
-{% if user.is_authenticated and (user.role == 'manager' or user.role == 'cashier') %}
+{% if user.is_authenticated %}
+    {% if user.role == 'manager' or user.role == 'cashier' %}
+
 <a href="/api/stock/sales/" class="fab" id="fabBtn"><i class="fas fa-plus"></i></a>
 {% endif %}
 
