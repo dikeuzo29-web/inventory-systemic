@@ -513,6 +513,78 @@
             });
         });
     </script>
+    <!-- Add this script to your base.html for collapsible navigation -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const mobileMenuBtn = document.createElement('button');
+        mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+        mobileMenuBtn.style.background = 'rgba(255,255,255,0.2)';
+        mobileMenuBtn.style.border = 'none';
+        mobileMenuBtn.style.color = 'white';
+        mobileMenuBtn.style.padding = '0.5rem';
+        mobileMenuBtn.style.borderRadius = '6px';
+        mobileMenuBtn.style.cursor = 'pointer';
+        mobileMenuBtn.style.display = 'none';
+        mobileMenuBtn.id = 'mobileMenuBtn';
+
+        // Insert mobile menu button
+        const nav = document.querySelector('nav');
+        nav.style.position = 'relative';
+        nav.insertBefore(mobileMenuBtn, nav.querySelector('.nav-links'));
+
+        // Toggle mobile menu
+        mobileMenuBtn.addEventListener('click', function() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
+        });
+
+        // Handle responsive behavior
+        function handleResponsive() {
+            const navLinks = document.querySelector('.nav-links');
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            
+            if (window.innerWidth <= 768) {
+                mobileMenuBtn.style.display = 'block';
+                navLinks.style.display = 'none';
+                navLinks.style.flexDirection = 'column';
+                navLinks.style.position = 'absolute';
+                navLinks.style.top = '100%';
+                navLinks.style.left = '0';
+                navLinks.style.right = '0';
+                navLinks.style.background = 'rgba(255,255,255,0.95)';
+                navLinks.style.backdropFilter = 'blur(10px)';
+                navLinks.style.padding = '1rem';
+                navLinks.style.borderRadius = '0 0 12px 12px';
+                navLinks.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
+                navLinks.style.zIndex = '1000';
+            } else {
+                mobileMenuBtn.style.display = 'none';
+                navLinks.style.display = 'flex';
+                navLinks.style.flexDirection = 'row';
+                navLinks.style.position = 'static';
+                navLinks.style.background = 'none';
+                navLinks.style.padding = '0';
+            }
+        }
+
+        // Initial call and resize listener
+        handleResponsive();
+        window.addEventListener('resize', handleResponsive);
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const navLinks = document.querySelector('.nav-links');
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            
+            if (window.innerWidth <= 768 && 
+                !navLinks.contains(e.target) && 
+                !mobileMenuBtn.contains(e.target) &&
+                navLinks.style.display === 'flex') {
+                navLinks.style.display = 'none';
+            }
+        });
+    });
+    </script>
 
     {% block extra_scripts %}
     <!-- Extra scripts from child templates -->

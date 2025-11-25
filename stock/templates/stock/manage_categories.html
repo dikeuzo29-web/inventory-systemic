@@ -1,106 +1,512 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Manage Categories{% endblock %}
+{% block title %}Manage Categories - InventoryPro{% endblock %}
+
+{% block page_title %}Category Management{% endblock %}
+{% block page_subtitle %}Organize your products with categories{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<style>
+    .categories-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
 
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="h3 mb-0 text-gray-800">Manage Categories</h2>
+    .card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 600;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #f8fafc;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-input::placeholder {
+        color: #9ca3af;
+    }
+
+    .submit-btn {
+        width: 100%;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        padding: 1rem 1.5rem;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+    }
+
+    .categories-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .category-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        background: #f8fafc;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+
+    .category-item:hover {
+        background: white;
+        border-color: #667eea;
+        transform: translateX(4px);
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+    }
+
+    .category-name {
+        font-weight: 600;
+        color: #1e293b;
+        font-size: 1rem;
+    }
+
+    .category-meta {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: #64748b;
+        font-size: 0.875rem;
+    }
+
+    .product-count {
+        background: #e0f2fe;
+        color: #0369a1;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+
+    .category-actions {
+        display: flex;
+        gap: 0.5rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .category-item:hover .category-actions {
+        opacity: 1;
+    }
+
+    .action-btn {
+        background: none;
+        border: none;
+        padding: 0.5rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        color: #64748b;
+    }
+
+    .action-btn:hover {
+        background: #f1f5f9;
+        color: #374151;
+    }
+
+    .action-btn.edit:hover {
+        color: #667eea;
+    }
+
+    .action-btn.delete:hover {
+        color: #ef4444;
+    }
+
+    .empty-state {
+        padding: 3rem 2rem;
+        text-align: center;
+        color: #64748b;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .help-text {
+        color: #64748b;
+        font-size: 0.875rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+    }
+
+    .form-description {
+        background: #f0f9ff;
+        border: 1px solid #bae6fd;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-description h6 {
+        color: #0369a1;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .form-description p {
+        color: #475569;
+        font-size: 0.8rem;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    /* Animation for new category */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .category-item.new {
+        animation: slideIn 0.5s ease-out;
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .categories-container {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .card-body {
+            padding: 1rem;
+        }
+        
+        .category-item {
+            padding: 0.875rem 1rem;
+        }
+        
+        .category-meta {
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: flex-end;
+        }
+        
+        .category-actions {
+            opacity: 1; /* Always show actions on mobile */
+        }
+    }
+
+    @media (max-width: 480px) {
+        .card-header {
+            padding: 1rem;
+            font-size: 0.875rem;
+        }
+        
+        .form-input {
+            padding: 0.75rem;
+        }
+        
+        .category-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+        
+        .category-meta {
+            width: 100%;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+    }
+</style>
+
+<!-- Messages Display -->
+{% if messages %}
+<div class="messages-container">
+    {% for message in messages %}
+    <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %}">
+        {{ message }}
     </div>
+    {% endfor %}
+</div>
+{% endif %}
 
-    <!-- Display Messages -->
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
-
-    <script src="{% static 'js/dexie.min.js' %}"></script>
-    <script src="{% static 'js/offline_sync.js' %}"></script>
-
-
-    <div class="row">
-        <!-- Add Category Form Column -->
-        <div class="col-lg-5 mb-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-header py-3 bg-light">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-plus-circle me-2"></i>Create a New Category
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <p class="card-text text-muted mb-4">
-                        Use this form to add a new product category to the system.
-                    </p>
-                    <form method="post" novalidate>
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="{{ form.name.id_for_label }}" class="form-label">Category Name</label>
-                            <input type="text"
-                                   name="{{ form.name.name }}"
-                                   id="{{ form.name.id_for_label }}"
-                                   class="form-control {% if form.name.errors %}is-invalid{% endif %}"
-                                   placeholder="e.g., Beverages, Snacks, Toiletries"
-                                   value="{{ form.name.value|default:'' }}"
-                                   required>
-                            {% if form.name.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.name.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-2"></i>Save Category
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+<div class="categories-container">
+    <!-- Create Category Card -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-plus-circle"></i>
+            Create New Category
         </div>
+        <div class="card-body">
+            <div class="form-description">
+                <h6><i class="fas fa-lightbulb"></i> Best Practices</h6>
+                <p>Create clear, descriptive category names that make it easy to organize and find products. Examples: "Beverages", "Snacks", "Dairy Products", "Household Items".</p>
+            </div>
 
-        <!-- Existing Categories List Column -->
-        <div class="col-lg-7">
-            <div class="card shadow-sm">
-                <div class="card-header py-3 bg-light">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-list-ul me-2"></i>Existing Categories
-                    </h6>
-                </div>
-                <div class="card-body">
-                    {% if categories %}
-                        <div class="list-group">
-                            {% for category in categories %}
-                                <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                    <span>{{ category.name }}</span>
-                                    <!-- Optional: Add action buttons here in the future -->
-                                    <!-- <div>
-                                        <a href="#" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a>
-                                        <a href="#" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
-                                    </div> -->
-                                </div>
+            <form method="post" novalidate id="categoryForm">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="{{ form.name.id_for_label }}" class="form-label">
+                        Category Name
+                    </label>
+                    <input type="text"
+                           name="{{ form.name.name }}"
+                           id="{{ form.name.id_for_label }}"
+                           class="form-input {% if form.name.errors %}error{% endif %}"
+                           placeholder="e.g., Beverages, Snacks, Toiletries"
+                           value="{{ form.name.value|default:'' }}"
+                           maxlength="100"
+                           required>
+                    {% if form.name.errors %}
+                        <div style="color: #ef4444; font-size: 0.875rem; margin-top: 0.5rem;">
+                            {% for error in form.name.errors %}
+                                <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
                             {% endfor %}
                         </div>
-                    {% else %}
-                        <div class="text-center text-muted py-5">
-                            <i class="fas fa-folder-open fa-3x mb-3"></i>
-                            <p class="mb-0">No categories found.</p>
-                            <small>Use the form on the left to add your first category.</small>
-                        </div>
                     {% endif %}
+                    <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.5rem;">
+                        <i class="fas fa-info-circle me-1"></i>Use a descriptive name that helps organize your products
+                    </div>
                 </div>
-            </div>
+
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-save"></i>
+                    Create Category
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Existing Categories Card -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-list-ul"></i>
+            Existing Categories
+            <span class="product-count" style="margin-left: auto;">
+                {{ categories|length }} category{{ categories|pluralize }}
+            </span>
+        </div>
+        <div class="card-body">
+            {% if categories %}
+                <div class="categories-list" id="categoriesList">
+                    {% for category in categories %}
+                    <div class="category-item {% if forloop.first and messages %}new{% endif %}" 
+                         data-category-id="{{ category.id }}">
+                        <div class="category-info">
+                            <div class="category-name">{{ category.name }}</div>
+                        </div>
+                        <div class="category-meta">
+                            <span class="product-count">
+                                <i class="fas fa-cube me-1"></i>
+                                {{ category.product_count|default:"0" }} products
+                            </span>
+                            <div class="category-actions">
+                                <button class="action-btn edit" title="Edit Category" onclick="editCategory('{{ category.id }}', '{{ category.name }}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete" title="Delete Category" onclick="deleteCategory('{{ category.id }}', '{{ category.name }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-folder-open"></i>
+                    <div>No categories yet</div>
+                    <div style="font-size: 0.875rem; margin-top: 0.5rem;">
+                        Create your first category to get started
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
-{% endblock %}
 
+<!-- <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const categoryForm = document.getElementById('categoryForm');
+        const categoryInput = document.getElementById('{{ form.name.id_for_label }}');
+        
+        // Add focus effect to form input
+        categoryInput.addEventListener('focus', function() {
+            this.style.background = 'white';
+            this.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.1)';
+        });
+        
+        categoryInput.addEventListener('blur', function() {
+            this.style.background = '#f8fafc';
+            this.style.boxShadow = 'none';
+        });
+
+        // Add animation to submit button
+        const submitBtn = document.querySelector('.submit-btn');
+        submitBtn.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+        });
+        
+        submitBtn.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+
+    //     // Clear form after successful submission (if needed)
+    //     {% if messages %}
+    //         {% for message in messages %}
+    //             {% if message.tags == 'success' %}
+    //                 categoryForm.reset();
+    //             {% endif %}
+    //         {% endfor %}
+    //     {% endif %}
+
+    //     // Auto-focus on category input
+    //     categoryInput.focus();
+    // });
+
+    // Category management functions (placeholder for future implementation)
+    function editCategory(categoryId, categoryName) {
+        // This would open a modal or switch to edit mode in a real implementation
+        console.log('Edit category:', categoryId, categoryName);
+        
+        // For now, we'll just show an alert
+        alert(`Edit functionality for "${categoryName}" would be implemented here. This would typically open a modal or inline edit form.`);
+    }
+
+    function deleteCategory(categoryId, categoryName) {
+        // This would show a confirmation dialog in a real implementation
+        console.log('Delete category:', categoryId, categoryName);
+        
+        if (confirm(`Are you sure you want to delete the category "${categoryName}"? This action cannot be undone.`)) {
+            // In a real implementation, this would make an API call to delete the category
+            alert(`Delete functionality for "${categoryName}" would be implemented here. This would typically make an API call to remove the category.`);
+            
+            // For demo purposes, we'll just remove the element
+            const categoryElement = document.querySelector(`[data-category-id="${categoryId}"]`);
+            if (categoryElement) {
+                categoryElement.style.opacity = '0';
+                categoryElement.style.transform = 'translateX(-20px)';
+                setTimeout(() => {
+                    categoryElement.remove();
+                    
+                    // Update category count
+                    const categoryCount = document.querySelectorAll('.category-item').length;
+                    const countElement = document.querySelector('.product-count');
+                    if (countElement) {
+                        countElement.textContent = `${categoryCount} categor${categoryCount === 1 ? 'y' : 'ies'}`;
+                    }
+                    
+                    // Show empty state if no categories left
+                    if (categoryCount === 0) {
+                        const categoriesList = document.getElementById('categoriesList');
+                        if (categoriesList) {
+                            categoriesList.innerHTML = `
+                                <div class="empty-state">
+                                    <i class="fas fa-folder-open"></i>
+                                    <div>No categories yet</div>
+                                    <div style="font-size: 0.875rem; margin-top: 0.5rem;">
+                                        Create your first category to get started
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                }, 300);
+            }
+        }
+    }
+
+    // Add real-time character counter
+    const categoryInput = document.getElementById('{{ form.name.id_for_label }}');
+    const charCounter = document.createElement('div');
+    charCounter.style.fontSize = '0.75rem';
+    charCounter.style.color = '#64748b';
+    charCounter.style.marginTop = '0.25rem';
+    charCounter.style.textAlign = 'right';
+    charCounter.textContent = '0/100 characters';
+    categoryInput.parentNode.appendChild(charCounter);
+
+    categoryInput.addEventListener('input', function() {
+        const length = this.value.length;
+        charCounter.textContent = `${length}/100 characters`;
+        
+        if (length > 90) {
+            charCounter.style.color = '#f59e0b';
+        } else if (length > 100) {
+            charCounter.style.color = '#ef4444';
+        } else {
+            charCounter.style.color = '#64748b';
+        }
+    });
+</script> -->
+
+{% endblock %}

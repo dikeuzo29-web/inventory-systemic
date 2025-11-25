@@ -2,109 +2,670 @@
 {% load humanize %}
 {% load static %}
 
-{% block title %}Manage Sales{% endblock %}
+{% block title %}Manage Sales - InventoryPro{% endblock %}
 
+{% block page_title %}Sales Management{% endblock %}
+{% block page_subtitle %}Process customer sales and track transactions{% endblock %}
 
 {% block content %}
-<form method="post" id="sales-form">
-    {% csrf_token %}
-    {{ formset.management_form }}
+<style>
+    .sales-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
 
-    <div id="formset-container">
-        {% for form in formset %}
-            <div class="formset-row border rounded p-3 mb-2">
-                {{ form.as_p }}
-                <button type="button" class="btn btn-danger btn-sm remove-form">Remove</button>
+    .card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 600;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .formset-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .formset-row {
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.25rem;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .formset-row:hover {
+        border-color: #cbd5e1;
+        background: white;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-select, .form-input {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .form-select:focus, .form-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .remove-form {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #dc2626;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .remove-form:hover {
+        background: #fecaca;
+        transform: scale(1.1);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .btn {
+        padding: 0.875rem 1.5rem;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        flex: 2;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-secondary {
+        background: #f1f5f9;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        flex: 1;
+    }
+
+    .btn-secondary:hover {
+        background: #e2e8f0;
+        transform: translateY(-1px);
+    }
+
+    .sales-summary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+    }
+
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+
+    .summary-label {
+        font-weight: 500;
+        opacity: 0.9;
+    }
+
+    .summary-value {
+        font-weight: 700;
+        font-size: 1.125rem;
+    }
+
+    .summary-total {
+        border-top: 1px solid rgba(255, 255, 255, 0.3);
+        padding-top: 0.75rem;
+        margin-top: 0.75rem;
+        font-size: 1.25rem;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        border-radius: 0 0 12px 12px;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .data-table th {
+        background: #f8fafc;
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: #475569;
+        border-bottom: 2px solid #e2e8f0;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .data-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+        color: #374151;
+    }
+
+    .data-table tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    .data-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .sale-id {
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .sale-items {
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+
+    .sale-items ul {
+        margin: 0;
+        padding-left: 1rem;
+    }
+
+    .sale-items li {
+        margin-bottom: 0.25rem;
+    }
+
+    .sale-amount {
+        font-weight: 700;
+        color: #059669;
+    }
+
+    .sale-cashier {
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .sale-time {
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+
+    .empty-state {
+        padding: 3rem 2rem;
+        text-align: center;
+        color: #64748b;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .sales-container {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .card-body {
+            padding: 1rem;
+        }
+        
+        .formset-row {
+            padding: 1rem;
+        }
+        
+        .data-table {
+            font-size: 0.875rem;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 0.75rem 0.5rem;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .card-header {
+            padding: 1rem;
+            font-size: 0.875rem;
+        }
+        
+        .form-select, .form-input {
+            padding: 0.75rem;
+        }
+        
+        .sales-summary {
+            padding: 1rem;
+        }
+    }
+
+    /* Animation for new rows */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .formset-row.new {
+        animation: slideIn 0.3s ease-out;
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+    }
+</style>
+
+<!-- Messages Display -->
+{% if messages %}
+<div class="messages-container">
+    {% for message in messages %}
+    <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="sales-container">
+    <!-- Sales Form Card -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-cash-register"></i>
+            Process New Sale
+        </div>
+        <div class="card-body">
+            <!-- Sales Summary -->
+            <div class="sales-summary" id="salesSummary" style="display: none;">
+                <div class="summary-item">
+                    <span class="summary-label">Items:</span>
+                    <span class="summary-value" id="totalItems">0</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Subtotal:</span>
+                    <span class="summary-value">₦<span id="subtotal">0.00</span></span>
+                </div>
+                <div class="summary-item summary-total">
+                    <span class="summary-label">Total Amount:</span>
+                    <span class="summary-value">₦<span id="totalAmount">0.00</span></span>
+                </div>
             </div>
-        {% endfor %}
+
+            <form method="post" id="sales-form">
+                {% csrf_token %}
+                {{ formset.management_form }}
+
+                <div class="formset-container" id="formset-container">
+                    {% for form in formset %}
+                        <div class="formset-row {% if forloop.first %}new{% endif %}">
+                            <button type="button" class="remove-form" title="Remove item">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Product</label>
+                                <select name="{{ form.product.html_name }}" class="form-select product-select" required>
+                                    <option value="">Select a product...</option>
+                                    {% for product in form.product.field.queryset %}
+                                        <option value="{{ product.id }}" 
+                                                data-price="{{ product.price }}"
+                                                data-stock="{{ product.quantity }}"
+                                                {% if form.product.value == product.id %}selected{% endif %}>
+                                            {{ product.name }} - ₦{{ product.price|floatformat:2 }} (Stock: {{ product.quantity }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" 
+                                       name="{{ form.quantity.html_name }}" 
+                                       class="form-input quantity-input" 
+                                       min="1" 
+                                       value="{{ form.quantity.value|default:'1' }}" 
+                                       required>
+                                <div class="help-text" style="font-size: 0.75rem; color: #64748b; margin-top: 0.25rem;">
+                                    Available: <span class="stock-available">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="action-buttons">
+                    <button type="button" class="btn btn-secondary" id="add-form-btn">
+                        <i class="fas fa-plus"></i>
+                        Add Item
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="submit-sale">
+                        <i class="fas fa-check-circle"></i>
+                        Process Sale
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <button type="button" class="btn btn-secondary" id="add-form-btn">
-        Add another product
-    </button>
-    <button type="submit" class="btn btn-primary">
-        Submit Sale
-    </button>
-</form>
-
-<hr>
-
-
-    <script src="{% static 'js/dexie.min.js' %}"></script>
-    <script src="{% static 'js/offline_sync.js' %}"></script>
-    <script src="{% static 'js/sales.js' %}"></script>
-
-<h2>Recent Sales Transactions</h2>
-<div class="table-responsive">
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Sale ID</th>
-            <th>Items</th>
-            <th>Total</th>
-            <th>Cashier</th>
-            <th>Time</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for sale in sales %}
-        <tr>
-            <td>{{ sale.id }}</td>
-            <td>
-                <ul style="margin:0; padding-left:1em;">
-                {% for item in sale.items.all %}
-                    <li>{{ item.product.name }} × {{ item.quantity }}</li>
-                {% endfor %}
-                </ul>
-            </td>
-            <td>₦{{ sale.total_amount|floatformat:2|intcomma }}</td>
-            <td>{{ sale.created_by.username }}</td>
-            <td>{{ sale.timestamp|naturaltime }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="5">No sales recorded yet.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    <!-- Recent Sales Card -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-history"></i>
+            Recent Sales
+            <span style="margin-left: auto; font-size: 0.875rem;">
+                {{ sales|length }} sale{{ sales|pluralize }}
+            </span>
+        </div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Sale ID</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Cashier</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sale in sales %}
+                    <tr>
+                        <td>
+                            <div class="sale-id">#{{ sale.id }}</div>
+                        </td>
+                        <td>
+                            <div class="sale-items">
+                                <ul>
+                                {% for item in sale.items.all %}
+                                    <li>{{ item.product.name }} × {{ item.quantity }}</li>
+                                {% endfor %}
+                                </ul>
+                            </div>
+                        </td>
+                        <td class="sale-amount">₦{{ sale.total_amount|floatformat:2|intcomma }}</td>
+                        <td>
+                            <div class="sale-cashier">{{ sale.created_by.username }}</div>
+                        </td>
+                        <td>
+                            <div class="sale-time">{{ sale.timestamp|naturaltime }}</div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <i class="fas fa-receipt"></i>
+                                <div>No sales recorded yet</div>
+                                <div style="font-size: 0.875rem; margin-top: 0.5rem;">
+                                    Process a sale to see it here
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    const addBtn = document.getElementById("add-form-btn");
-    const container = document.getElementById("formset-container");
-    const totalForms = document.getElementById("id_form-TOTAL_FORMS");
+    document.addEventListener("DOMContentLoaded", function() {
+        const addBtn = document.getElementById("add-form-btn");
+        const container = document.getElementById("formset-container");
+        const totalForms = document.getElementById("id_form-TOTAL_FORMS");
+        const salesSummary = document.getElementById("salesSummary");
+        const salesForm = document.getElementById("sales-form");
 
-    // ➕ Add new form
-    addBtn.addEventListener("click", function() {
-        const formCount = parseInt(totalForms.value);
-        const newForm = container.children[0].cloneNode(true);
+        // Initialize form count
+        let formCount = parseInt(totalForms.value);
 
-        // Reset input values
-        newForm.querySelectorAll("input, select").forEach(input => {
-            if (input.type === "checkbox") input.checked = false;
-            else input.value = "";
-        });
+        // Update sales summary
+        function updateSalesSummary() {
+            let totalItems = 0;
+            let subtotal = 0;
 
-        // Update form index (for Django)
-        newForm.innerHTML = newForm.innerHTML.replace(/form-(\d)+/g, `form-${formCount}`);
-        container.appendChild(newForm);
+            document.querySelectorAll('.formset-row').forEach(row => {
+                const productSelect = row.querySelector('.product-select');
+                const quantityInput = row.querySelector('.quantity-input');
+                const selectedOption = productSelect?.options[productSelect.selectedIndex];
+                
+                if (selectedOption && selectedOption.value && quantityInput?.value) {
+                    const price = parseFloat(selectedOption.getAttribute('data-price')) || 0;
+                    const quantity = parseInt(quantityInput.value) || 0;
+                    
+                    totalItems += quantity;
+                    subtotal += price * quantity;
+                }
+            });
 
-        totalForms.value = formCount + 1;
-    });
+            // Update summary display
+            document.getElementById('totalItems').textContent = totalItems;
+            document.getElementById('subtotal').textContent = subtotal.toFixed(2);
+            document.getElementById('totalAmount').textContent = subtotal.toFixed(2);
 
-    // 🗑️ Remove form
-    document.addEventListener("click", function(e) {
-        if (e.target.classList.contains("remove-form")) {
-            const rows = document.querySelectorAll(".formset-row");
-            if (rows.length > 1) {
-                e.target.closest(".formset-row").remove();
-                totalForms.value = document.querySelectorAll(".formset-row").length;
+            // Show/hide summary
+            if (totalItems > 0) {
+                salesSummary.style.display = 'block';
+            } else {
+                salesSummary.style.display = 'none';
             }
         }
+
+        // Update stock information
+        function updateStockInfo(row) {
+            const productSelect = row.querySelector('.product-select');
+            const quantityInput = row.querySelector('.quantity-input');
+            const stockAvailable = row.querySelector('.stock-available');
+            const selectedOption = productSelect?.options[productSelect.selectedIndex];
+            
+            if (selectedOption && selectedOption.value) {
+                const stock = parseInt(selectedOption.getAttribute('data-stock')) || 0;
+                stockAvailable.textContent = stock;
+                
+                // Validate quantity
+                const quantity = parseInt(quantityInput.value) || 0;
+                if (quantity > stock) {
+                    quantityInput.style.borderColor = '#ef4444';
+                } else {
+                    quantityInput.style.borderColor = '#e2e8f0';
+                }
+            } else {
+                stockAvailable.textContent = '0';
+            }
+        }
+
+        // Add new form
+        function addNewForm() {
+            const newRow = container.children[0].cloneNode(true);
+            
+            // Reset values
+            newRow.querySelectorAll("input, select").forEach(input => {
+                if (input.type === "checkbox") input.checked = false;
+                else if (input.type === "number") input.value = "1";
+                else input.value = "";
+            });
+
+            // Update form indices
+            const newIndex = formCount;
+            newRow.innerHTML = newRow.innerHTML.replace(/form-(\d+)/g, `form-${newIndex}`);
+            newRow.innerHTML = newRow.innerHTML.replace(/id_form-(\d+)/g, `id_form-${newIndex}`);
+            
+            container.appendChild(newRow);
+            totalForms.value = ++formCount;
+            
+            // Add animation
+            newRow.classList.add('new');
+            setTimeout(() => newRow.classList.remove('new'), 300);
+            
+            // Initialize stock info for new row
+            updateStockInfo(newRow);
+            updateSalesSummary();
+        }
+
+        // Remove form
+        function removeForm(row) {
+            const rows = document.querySelectorAll(".formset-row");
+            if (rows.length > 1) {
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(-20px)';
+                setTimeout(() => {
+                    row.remove();
+                    totalForms.value = document.querySelectorAll(".formset-row").length;
+                    updateSalesSummary();
+                }, 300);
+            }
+        }
+
+        // Event listeners
+        addBtn.addEventListener("click", addNewForm);
+
+        document.addEventListener("click", function(e) {
+            if (e.target.closest(".remove-form")) {
+                removeForm(e.target.closest(".formset-row"));
+            }
+        });
+
+        // Update summary when products or quantities change
+        document.addEventListener("change", function(e) {
+            if (e.target.classList.contains('product-select') || e.target.classList.contains('quantity-input')) {
+                updateStockInfo(e.target.closest('.formset-row'));
+                updateSalesSummary();
+            }
+        });
+
+        document.addEventListener("input", function(e) {
+            if (e.target.classList.contains('quantity-input')) {
+                updateStockInfo(e.target.closest('.formset-row'));
+                updateSalesSummary();
+            }
+        });
+
+        // Form submission handling
+        salesForm.addEventListener("submit", function(e) {
+            let hasErrors = false;
+            
+            document.querySelectorAll('.formset-row').forEach(row => {
+                const productSelect = row.querySelector('.product-select');
+                const quantityInput = row.querySelector('.quantity-input');
+                const selectedOption = productSelect?.options[productSelect.selectedIndex];
+                
+                if (selectedOption && selectedOption.value && quantityInput?.value) {
+                    const stock = parseInt(selectedOption.getAttribute('data-stock')) || 0;
+                    const quantity = parseInt(quantityInput.value) || 0;
+                    
+                    if (quantity > stock) {
+                        hasErrors = true;
+                        quantityInput.style.borderColor = '#ef4444';
+                        alert(`Insufficient stock for ${selectedOption.text}. Available: ${stock}`);
+                    }
+                }
+            });
+            
+            if (hasErrors) {
+                e.preventDefault();
+            }
+        });
+
+        // Initialize stock info for existing rows
+        document.querySelectorAll('.formset-row').forEach(row => {
+            updateStockInfo(row);
+        });
+        
+        updateSalesSummary();
+
+        // Add hover effects
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+            });
+            
+            btn.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
     });
-});
 </script>
 
 {% endblock %}

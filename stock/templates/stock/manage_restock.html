@@ -1,62 +1,555 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Manage Restock{% endblock %}
+{% load humanize %}
+
+{% block title %}Manage Restock - InventoryPro{% endblock %}
+
+{% block page_title %}Restock Management{% endblock %}
+{% block page_subtitle %}Add new inventory and track restock transactions{% endblock %}
 
 {% block content %}
-<h2>Record a Restock Transaction</h2>
+<style>
+    .restock-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
 
-{% if form.errors %}
-  <div style="color: red;">
-    <p>Please correct the errors below:</p>
-    <ul>
-      {% for field in form %}
-        {% for error in field.errors %}
-          <li>{{ field.label }}: {{ error }}</li>
-        {% endfor %}
-      {% endfor %}
-      {% for error in form.non_field_errors %}
-        <li>{{ error }}</li>
-      {% endfor %}
-    </ul>
-  </div>
+    .card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 600;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-select, .form-input {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #f8fafc;
+    }
+
+    .form-select:focus, .form-input:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .error-message {
+        background: #fef2f2;
+        color: #dc2626;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+        border: 1px solid #fecaca;
+    }
+
+    .error-list {
+        margin: 0.5rem 0 0 1rem;
+        padding-left: 1rem;
+    }
+
+    .error-list li {
+        margin-bottom: 0.25rem;
+    }
+
+    .submit-btn {
+        width: 100%;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        padding: 1rem 1.5rem;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+    }
+
+    .submit-btn:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        border-radius: 0 0 12px 12px;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .data-table th {
+        background: #f8fafc;
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: #475569;
+        border-bottom: 2px solid #e2e8f0;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .data-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+        color: #374151;
+    }
+
+    .data-table tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    .data-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .empty-state {
+        padding: 3rem 2rem;
+        text-align: center;
+        color: #64748b;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .transaction-id {
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .product-name {
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .quantity-added {
+        font-weight: 700;
+        color: #059669;
+    }
+
+    .timestamp {
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+
+    .user-name {
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .stock-info {
+        background: #f0f9ff;
+        border: 1px solid #bae6fd;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+
+    .stock-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .stock-label {
+        color: #475569;
+        font-weight: 500;
+    }
+
+    .stock-value {
+        color: #0c4a6e;
+        font-weight: 600;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .restock-container {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .card-body {
+            padding: 1rem;
+        }
+        
+        .data-table {
+            font-size: 0.875rem;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 0.75rem 0.5rem;
+        }
+        
+        .stock-item {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .card-header {
+            padding: 1rem;
+            font-size: 0.875rem;
+        }
+        
+        .form-select, .form-input {
+            padding: 0.75rem;
+        }
+    }
+
+    /* Animation for new transactions */
+    @keyframes highlight {
+        0% {
+            background: #f0fdf4;
+        }
+        100% {
+            background: transparent;
+        }
+    }
+
+    .new-transaction {
+        animation: highlight 2s ease-out;
+    }
+</style>
+
+<!-- Messages Display -->
+{% if messages %}
+<div class="messages-container">
+    {% for message in messages %}
+    <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
 {% endif %}
 
-<script src="{% static 'js/dexie.min.js' %}"></script>
-<script src="{% static 'js/offline_sync.js' %}"></script>
-<script src="{% static 'js/restock.js' %}"></script>
-
-<form method="post" action="">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Submit Restock</button>
-</form>
-
-<h3>Recent Restock Transactions</h3>
-<table border="1" cellpadding="5" cellspacing="0">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Product</th>
-            <th>Quantity Added</th>
-            <th>Timestamp</th>
-            <th>Recorded By</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for transaction in transactions %}
-        <tr>
-            <td>{{ transaction.id }}</td>
-            <td>{{ transaction.product }}</td>
-            <td>{{ transaction.quantity }}</td>
-            <td>{{ transaction.timestamp|date:"Y-m-d H:i" }}</td>
-            <td>{{ transaction.created_by.username }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="5">No restock transactions recorded yet.</td>
-        </tr>
+<!-- Error Display -->
+{% if form.errors %}
+<div class="error-message">
+    <strong>Please correct the errors below:</strong>
+    <ul class="error-list">
+        {% for field in form %}
+            {% for error in field.errors %}
+                <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+            {% endfor %}
         {% endfor %}
-    </tbody>
-</table>
-{% endblock %}
+        {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
 
+<div class="restock-container">
+    <!-- Restock Form Card -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-truck-loading"></i>
+            Record Restock
+        </div>
+        <div class="card-body">
+            <form method="post" action="" id="restockForm" novalidate>
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="{{ form.product.id_for_label }}" class="form-label">
+                        Product
+                    </label>
+                    <select name="product" id="{{ form.product.id_for_label }}" class="form-select" required>
+                        <option value="">Select a product to restock...</option>
+                        {% for product in form.product.field.queryset %}
+                            <option value="{{ product.id }}" 
+                                    data-current-stock="{{ product.quantity }}"
+                                    data-price="{{ product.price }}"
+                                    {% if form.product.value == product.id %}selected{% endif %}>
+                                {{ product.name }} (Current: {{ product.quantity }} units)
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.quantity.id_for_label }}" class="form-label">
+                        Quantity to Add
+                    </label>
+                    <div style="position: relative;">
+                        <input type="number" 
+                               name="quantity" 
+                               id="{{ form.quantity.id_for_label }}" 
+                               class="form-input" 
+                               min="1" 
+                               value="{{ form.quantity.value|default:'1' }}" 
+                               required
+                               placeholder="Enter quantity">
+                        <div class="quantity-controls" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 0.125rem;">
+                            <button type="button" class="quantity-btn" style="background: #e2e8f0; border: none; width: 24px; height: 20px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;" onclick="adjustQuantity(1)">+</button>
+                            <button type="button" class="quantity-btn" style="background: #e2e8f0; border: none; width: 24px; height: 20px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;" onclick="adjustQuantity(-1)">-</button>
+                        </div>
+                    </div>
+                    <div class="help-text" style="font-size: 0.75rem; color: #64748b; margin-top: 0.5rem;">
+                        Enter the number of units being added to inventory
+                    </div>
+                </div>
+
+                <!-- Stock Information -->
+                <div class="stock-info" id="stockInfo" style="display: none;">
+                    <div class="stock-item">
+                        <span class="stock-label">Current Stock:</span>
+                        <span class="stock-value" id="currentStock">0</span>
+                    </div>
+                    <div class="stock-item">
+                        <span class="stock-label">After Restock:</span>
+                        <span class="stock-value" id="afterRestock">0</span>
+                    </div>
+                    <div class="stock-item">
+                        <span class="stock-label">Value Added:</span>
+                        <span class="stock-value">₦<span id="valueAdded">0.00</span></span>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-check-circle"></i>
+                    Submit Restock
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Recent Transactions Card -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-history"></i>
+            Recent Restocks
+            <span style="margin-left: auto; font-size: 0.875rem;">
+                {{ transactions|length }} transaction{{ transactions|pluralize }}
+            </span>
+        </div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Product</th>
+                        <th class="text-right">Qty Added</th>
+                        <th>Timestamp</th>
+                        <th>Recorded By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                    <tr class="{% if forloop.first %}new-transaction{% endif %}">
+                        <td>
+                            <div class="transaction-id">#{{ transaction.id }}</div>
+                        </td>
+                        <td>
+                            <div class="product-name">{{ transaction.product.name }}</div>
+                            <div class="timestamp" style="font-size: 0.75rem;">
+                                ₦{{ transaction.product.price|floatformat:2 }} per unit
+                            </div>
+                        </td>
+                        <td class="text-right">
+                            <span class="quantity-added">+{{ transaction.quantity|intcomma }}</span>
+                        </td>
+                        <td>
+                            <div class="timestamp">{{ transaction.timestamp|date:"M j, Y" }}</div>
+                            <div class="timestamp" style="font-size: 0.75rem;">{{ transaction.timestamp|date:"H:i" }}</div>
+                        </td>
+                        <td>
+                            <div class="user-name">{{ transaction.created_by.username }}</div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <i class="fas fa-truck"></i>
+                                <div>No restock transactions</div>
+                                <div style="font-size: 0.875rem; margin-top: 0.5rem;">
+                                    Record a restock to see it here
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const productSelect = document.getElementById('{{ form.product.id_for_label }}');
+        const quantityInput = document.getElementById('{{ form.quantity.id_for_label }}');
+        const stockInfo = document.getElementById('stockInfo');
+        const currentStockElem = document.getElementById('currentStock');
+        const afterRestockElem = document.getElementById('afterRestock');
+        const valueAddedElem = document.getElementById('valueAdded');
+        const restockForm = document.getElementById('restockForm');
+
+        // Update stock information
+        function updateStockInfo() {
+            const selectedOption = productSelect.options[productSelect.selectedIndex];
+            const quantity = parseInt(quantityInput.value) || 0;
+
+            if (selectedOption && selectedOption.value) {
+                const currentStock = parseInt(selectedOption.getAttribute('data-current-stock')) || 0;
+                const price = parseFloat(selectedOption.getAttribute('data-price')) || 0;
+                const afterRestock = currentStock + quantity;
+                const valueAdded = price * quantity;
+
+                // Update display
+                currentStockElem.textContent = currentStock.toLocaleString();
+                afterRestockElem.textContent = afterRestock.toLocaleString();
+                valueAddedElem.textContent = valueAdded.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+
+                // Show stock info
+                stockInfo.style.display = 'block';
+
+                // Validate quantity
+                if (quantity <= 0) {
+                    quantityInput.style.borderColor = '#ef4444';
+                } else {
+                    quantityInput.style.borderColor = '#10b981';
+                }
+            } else {
+                // Hide stock info if no product selected
+                stockInfo.style.display = 'none';
+            }
+        }
+
+        // Global function for quantity adjustment
+        window.adjustQuantity = function(change) {
+            const currentValue = parseInt(quantityInput.value) || 0;
+            const newValue = Math.max(1, currentValue + change);
+            quantityInput.value = newValue;
+            updateStockInfo();
+        };
+
+        // Event listeners
+        productSelect.addEventListener('change', updateStockInfo);
+        quantityInput.addEventListener('input', updateStockInfo);
+        quantityInput.addEventListener('change', updateStockInfo);
+
+        // Initialize on page load
+        updateStockInfo();
+
+        // Add focus effects
+        const formInputs = document.querySelectorAll('.form-select, .form-input');
+        formInputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.style.background = 'white';
+                this.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.1)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.style.background = '#f8fafc';
+                this.style.boxShadow = 'none';
+            });
+        });
+
+        // Add animation to submit button
+        const submitBtn = document.querySelector('.submit-btn');
+        submitBtn.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+        });
+        
+        submitBtn.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+
+        // Auto-select first product if only one exists
+        if (productSelect.options.length === 2) { // 1 for default option + 1 product
+            productSelect.selectedIndex = 1;
+            updateStockInfo();
+        }
+
+        // Offline support
+        restockForm.addEventListener('submit', async function(e) {
+            if (!navigator.onLine) {
+                e.preventDefault();
+                alert('You are currently offline. Restock will be recorded when connection is restored.');
+                // Here you would integrate with your offline sync logic
+            }
+        });
+    });
+
+    // Add hover effects to table rows
+    document.querySelectorAll('.data-table tbody tr').forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(4px)';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(0)';
+        });
+    });
+</script>
+
+{% endblock %}

@@ -2,130 +2,131 @@
 {% load static %}
 {% load humanize %}
 
-{% block title %}Inventory Dashboard - {{ period|title }}{% endblock %}
+{% block title %}Dashboard - {{ period|title }}{% endblock %}
 
-{% block extra_head %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Real-time inventory analytics and insights{% endblock %}
 
-<!-- Font Awesome for icons -->
-<link rel="stylesheet" href="{% static 'css/fontawesome.min.css' %}">
-<script src="{% static 'js/dexie.min.js' %}"></script>
-<script src="{% static 'js/chart.umd.min.js' %}"></script>
-<script src="{% static 'js/dashboard.js' %}"></script>
-<script src="{% static 'js/offline_logic.js' %}"></script>
+{% block content %}
+<!-- Messages Display -->
+{% if messages %}
+<div class="messages-container">
+    {% for message in messages %}
+    <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 
 <style>
-    /* General layout and card enhancements */
-    .card {
-        border: none;
-        border-radius: 0.75rem;
-        transition: all 0.3s ease;
+    /* Dashboard Specific Styles */
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
     }
 
-    .card:hover {
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        transform: translateY(-2px);
-    }
-
-    .card-header {
-        border-top-left-radius: 0.75rem;
-        border-top-right-radius: 0.75rem;
-        background: linear-gradient(90deg, #e0e7ff, #f3f4f6);
-        font-weight: 600;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    /* Filter section */
-    .filter-card .form-label {
-        font-weight: 500;
-        color: #1e293b;
-    }
-
-    .filter-card .btn-primary {
-        background-color: #3b82f6;
-        border-color: #3b82f6;
-    }
-
-    .filter-card .btn-primary:hover {
-        background-color: #2563eb;
-        border-color: #2563eb;
-    }
-
-    /* KPI cards */
     .kpi-card {
-        background: linear-gradient(135deg, #ffffff, #f9fafb);
-        border: 1px solid #e5e7eb;
-        border-radius: 0.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
         padding: 1.5rem;
-        text-align: center;
+        border-radius: 12px;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
         transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .kpi-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.3);
     }
 
     .kpi-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.25);
     }
 
-    .kpi-card .kpi-title {
-        font-size: 1rem;
-        color: #64748b;
-        margin-bottom: 0.5rem;
+    .kpi-card.revenue {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     }
 
-    .kpi-card .kpi-value {
+    .kpi-card.sales {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    }
+
+    .kpi-card.transactions {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    }
+
+    .kpi-card.inventory {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+
+    .kpi-icon {
         font-size: 2rem;
-        font-weight: 700;
-        color: #1e293b;
+        margin-bottom: 1rem;
+        opacity: 0.9;
     }
 
-    /* Table styling */
-    .table-hover tbody tr:hover {
-        background-color: #f1f5f9;
-    }
-
-    .table thead th {
-        background-color: #f3f4f6;
-        font-weight: 600;
-        border-bottom-width: 2px;
-        border-color: #e5e7eb;
-    }
-
-    .table tfoot th {
-        background-color: #f3f4f6;
-        font-weight: 700;
-    }
-
-    .badge {
+    .kpi-title {
         font-size: 0.875rem;
-        padding: 0.25em 0.75em;
         font-weight: 500;
+        opacity: 0.9;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
-    .table-danger {
-        --bs-table-bg: #fee2e2;
-        --bs-table-border-color: #fecaca;
+    .kpi-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
     }
 
-    .table-warning {
-        --bs-table-bg: #fefcbf;
-        --bs-table-border-color: #fef08a;
+    .kpi-trend {
+        font-size: 0.75rem;
+        opacity: 0.9;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
     }
 
-    /* Chart styling */
-    .chart-container {
-        position: relative;
-        height: 400px;
-        background: #ffffff;
-        border-radius: 0.75rem;
+    .charts-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .chart-card {
+        background: white;
+        border-radius: 12px;
         padding: 1.5rem;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     }
 
     .chart-header {
-        margin-bottom: 1rem;
-        font-size: 1.25rem;
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .chart-title {
+        font-size: 1.125rem;
+        font-weight: 600;
         color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     .chart-controls {
@@ -135,221 +136,434 @@
 
     .chart-btn {
         padding: 0.5rem 1rem;
-        font-size: 0.875rem;
-        background: #e5e7eb;
-        border: none;
-        border-radius: 0.375rem;
+        border: 1px solid #e2e8f0;
+        background: white;
+        border-radius: 6px;
         cursor: pointer;
+        font-size: 0.875rem;
+        font-weight: 500;
         transition: all 0.3s ease;
     }
 
     .chart-btn:hover {
-        background: #d1d5db;
+        background: #f1f5f9;
     }
 
     .chart-btn.active {
-        background: #3b82f6;
-        color: #ffffff;
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+
+    .tables-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+
+    .table-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .data-table th {
+        background: #f8fafc;
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: #475569;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .data-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .data-table tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    .data-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .stock-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-out {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+    .status-low {
+        background: #fffbeb;
+        color: #d97706;
+    }
+
+    .status-ok {
+        background: #f0fdf4;
+        color: #16a34a;
+    }
+
+    .filter-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+
+    .filter-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .filter-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #374151;
+        font-size: 0.875rem;
+    }
+
+    .form-select, .form-input {
+        padding: 0.75rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        transition: border-color 0.3s ease;
+    }
+
+    .form-select:focus, .form-input:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .filter-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+
+    .filter-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .text-success {
+        color: #10b981;
+    }
+
+    .text-danger {
+        color: #ef4444;
+    }
+
+    .text-warning {
+        color: #f59e0b;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .charts-grid,
+        .tables-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .chart-container {
+            height: 250px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .kpi-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .filter-form {
+            grid-template-columns: 1fr;
+        }
+        
+        .data-table {
+            font-size: 0.875rem;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 0.75rem 0.5rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .kpi-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .chart-controls {
+            flex-wrap: wrap;
+        }
+        
+        .chart-btn {
+            flex: 1;
+            min-width: 60px;
+        }
     }
 </style>
-{% endblock %}
 
-{% block content %}
-<div class="container-fluid py-4">
-    <!-- Messages -->
-    {% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<!-- Filter Section -->
+<div class="filter-card">
+    <div class="filter-header">
+        <i class="fas fa-filter"></i>
+        Report Filters
     </div>
-    {% endfor %}
-    {% endif %}
+    <form method="get" class="filter-form">
+        <div class="form-group">
+            <label for="periodSelect" class="form-label">Report Period</label>
+            <select name="period" id="periodSelect" class="form-select">
+                <option value="daily" {% if period == 'daily' %}selected{% endif %}>Daily</option>
+                <option value="weekly" {% if period == 'weekly' %}selected{% endif %}>Weekly</option>
+                <option value="monthly" {% if period == 'monthly' %}selected{% endif %}>Monthly</option>
+                <option value="quarterly" {% if period == 'quarterly' %}selected{% endif %}>Quarterly</option>
+                <option value="custom" {% if period == 'custom' %}selected{% endif %}>Custom Range</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="startDate" class="form-label">Start Date</label>
+            <input type="date" name="start_date" id="startDate" class="form-input"
+                value="{{ request.GET.start_date }}" {% if period != 'custom' %}disabled{% endif %}>
+        </div>
+        
+        <div class="form-group">
+            <label for="endDate" class="form-label">End Date</label>
+            <input type="date" name="end_date" id="endDate" class="form-input"
+                value="{{ request.GET.end_date }}" {% if period != 'custom' %}disabled{% endif %}>
+        </div>
+        
+        <div class="form-group">
+            <button type="submit" class="filter-btn">
+                <i class="fas fa-check"></i>
+                Apply Filters
+            </button>
+        </div>
+    </form>
+</div>
 
-    <!-- Filter Section -->
-    <div class="card mb-4 shadow-sm filter-card">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-filter me-2 text-primary"></i> Report Filters</h5>
+<!-- KPI Cards -->
+<div class="kpi-grid">
+    <div class="kpi-card revenue">
+        <div class="kpi-icon">
+            <i class="fas fa-money-bill-wave"></i>
         </div>
-        <div class="card-body">
-            <form method="get" class="row g-3 align-items-end">
-                {% csrf_token %}
-                <div class="col-md-4 col-lg-3">
-                    <label for="periodSelect" class="form-label">Report Period</label>
-                    <select name="period" id="periodSelect" class="form-select">
-                        <option value="daily" {% if period == 'daily' %}selected{% endif %}>Daily</option>
-                        <option value="weekly" {% if period == 'weekly' %}selected{% endif %}>Weekly</option>
-                        <option value="monthly" {% if period == 'monthly' %}selected{% endif %}>Monthly</option>
-                        <option value="quarterly" {% if period == 'quarterly' %}selected{% endif %}>Quarterly</option>
-                        <option value="custom" {% if period == 'custom' %}selected{% endif %}>Custom Range</option>
-                    </select>
-                </div>
-                <div class="col-md-4 col-lg-3">
-                    <label for="startDate" class="form-label">Start Date</label>
-                    <input type="date" name="start_date" id="startDate" class="form-control"
-                        value="{{ request.GET.start_date }}" {% if period != 'custom' %}disabled{% endif %}>
-                </div>
-                <div class="col-md-4 col-lg-3">
-                    <label for="endDate" class="form-label">End Date</label>
-                    <input type="date" name="end_date" id="endDate" class="form-control"
-                        value="{{ request.GET.end_date }}" {% if period != 'custom' %}disabled{% endif %}>
-                </div>
-                <div class="col-md-12 col-lg-3 d-grid">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-check me-1"></i> Apply Filters
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- KPI Cards -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-6 col-lg-3">
-            <div class="kpi-card">
-                <div class="kpi-title">Total Revenue</div>
-                <div class="kpi-value text-success">₦{{ total_revenue|default:0|floatformat:2|intcomma }}</div>
-            </div>
-        </div>
-        <div class="col-md-6 col-lg-3">
-            <div class="kpi-card">
-                <div class="kpi-title">Units Sold</div>
-                <div class="kpi-value text-primary">{{ total_quantity|default:0|intcomma }}</div>
-            </div>
-        </div>
-        <div class="col-md-6 col-lg-3">
-            <div class="kpi-card">
-                <div class="kpi-title">Transactions</div>
-                <div class="kpi-value text-info">{{ transactions_count|default:0|intcomma }}</div>
-            </div>
-        </div>
-        <div class="col-md-6 col-lg-3">
-            <div class="kpi-card">
-                <div class="kpi-title">Inventory Value</div>
-                <div class="kpi-value text-secondary">₦{{ total_inventory_value|default:0|floatformat:2|intcomma }}
-                </div>
-            </div>
+        <div class="kpi-title">Total Revenue</div>
+        <div class="kpi-value">₦{{ total_revenue|default:0|floatformat:2|intcomma }}</div>
+        <div class="kpi-trend">
+            <i class="fas fa-arrow-up"></i>
+            Real-time data
         </div>
     </div>
-
-    <!-- Charts Section -->
-    <div class="row g-4 mb-4">
-        <!-- Sales Trend Chart -->
-        <div class="col-xl-8">
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-chart-line me-2 text-info"></i> Sales & Revenue Trend</h5>
-                    <div class="chart-controls">
-                        <button class="chart-btn active" data-range="7">7D</button>
-                        <button class="chart-btn" data-range="30">30D</button>
-                        <button class="chart-btn" data-range="90">90D</button>
-                        <button class="chart-btn" data-range="365">1Y</button>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="chart-container">
-                        <canvas id="salesTrendChart" aria-label="Sales and revenue trend over time"></canvas>
-                    </div>
-                </div>
-            </div>
+    
+    <div class="kpi-card sales">
+        <div class="kpi-icon">
+            <i class="fas fa-shopping-cart"></i>
         </div>
-
-        <!-- Inventory Value by Category -->
-        <div class="col-xl-4">
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-pie-chart me-2 text-warning"></i> Inventory Value by Category</h5>
-                </div>
-                <div class="card-body">
-                    <div class="chart-container">
-                        <canvas id="inventoryChart" aria-label="Inventory value distribution by category"></canvas>
-                    </div>
-                </div>
-            </div>
+        <div class="kpi-title">Units Sold</div>
+        <div class="kpi-value">{{ total_quantity|default:0|intcomma }}</div>
+        <div class="kpi-trend">
+            <i class="fas fa-chart-line"></i>
+            {{ period }} period
         </div>
     </div>
-
-    <!-- Inventory Summary & Top Selling -->
-    <div class="row g-4">
-        <div class="col-xl-8">
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-boxes me-2 text-success"></i> Current Inventory Status</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Product</th>
-                                    <th class="text-end">Stock Level</th>
-                                    <th>Category</th>
-                                    <th class="text-end">Reorder Level</th>
-                                    <th>Status</th>
-                                    <th class="text-end">Value</th>
-                                    <th>Last Updated</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for product in current_stock %}
-                                <tr
-                                    class="{% if product.quantity <= 0 %}table-danger{% elif product.quantity <= product.reorder_level %}table-warning{% endif %}">
-                                    <td>{{ product.name }}</td>
-                                    <td class="text-end">{{ product.quantity|intcomma }}</td>
-                                    <td>{{ product.category|default:"-" }}</td>
-                                    <td class="text-end">{{ product.reorder_level|intcomma }}</td>
-                                    <td>
-                                        <span
-                                            class="badge {% if product.quantity <= 0 %}bg-danger{% elif product.quantity <= product.reorder_level %}bg-warning text-dark{% else %}bg-success{% endif %}">
-                                            {{ product.stock_status }}
-                                        </span>
-                                    </td>
-                                    <td class="text-end">₦{{ product.inventory_value|floatformat:2|intcomma }}</td>
-                                    <td>{{ product.last_updated|date:"M d, Y H:i" }}</td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">No inventory items found. Add
-                                        products to get started.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+    
+    <div class="kpi-card transactions">
+        <div class="kpi-icon">
+            <i class="fas fa-receipt"></i>
         </div>
-        <div class="col-xl-4">
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-trophy me-2 text-danger"></i> Top Selling Products</h5>
-                </div>
-                <div class="card-body">
-                    <div class="chart-container">
-                        <canvas id="topProductsChart" aria-label="Top selling products"></canvas>
-                    </div>
-                </div>
-            </div>
+        <div class="kpi-title">Transactions</div>
+        <div class="kpi-value">{{ transactions_count|default:0|intcomma }}</div>
+        <div class="kpi-trend">
+            <i class="fas fa-exchange-alt"></i>
+            All channels
+        </div>
+    </div>
+    
+    <div class="kpi-card inventory">
+        <div class="kpi-icon">
+            <i class="fas fa-boxes"></i>
+        </div>
+        <div class="kpi-title">Inventory Value</div>
+        <div class="kpi-value">₦{{ total_inventory_value|default:0|floatformat:2|intcomma }}</div>
+        <div class="kpi-trend">
+            <i class="fas fa-warehouse"></i>
+            Current stock
         </div>
     </div>
 </div>
 
-<!-- Chart.js CDN -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- Charts Section -->
+<div class="charts-grid">
+    <!-- Sales Trend Chart -->
+    <div class="chart-card">
+        <div class="chart-header">
+            <div class="chart-title">
+                <i class="fas fa-chart-line text-info"></i>
+                Sales & Revenue Trend
+            </div>
+            <div class="chart-controls">
+                <button class="chart-btn active" data-range="7">7D</button>
+                <button class="chart-btn" data-range="30">30D</button>
+                <button class="chart-btn" data-range="90">90D</button>
+                <button class="chart-btn" data-range="365">1Y</button>
+            </div>
+        </div>
+        <div class="chart-container">
+            <canvas id="salesTrendChart"></canvas>
+        </div>
+    </div>
 
+    <!-- Inventory Value by Category -->
+    <div class="chart-card">
+        <div class="chart-header">
+            <div class="chart-title">
+                <i class="fas fa-pie-chart text-warning"></i>
+                Inventory by Category
+            </div>
+        </div>
+        <div class="chart-container">
+            <canvas id="inventoryChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Tables Section -->
+<div class="tables-grid">
+    <!-- Inventory Status -->
+    <div class="table-card">
+        <div class="table-header">
+            <i class="fas fa-boxes"></i>
+            Current Inventory Status
+        </div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th class="text-right">Stock</th>
+                        <th>Category</th>
+                        <th class="text-right">Reorder</th>
+                        <th>Status</th>
+                        <th class="text-right">Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in current_stock %}
+                    <tr>
+                        <td><strong>{{ product.name }}</strong></td>
+                        <td class="text-right">{{ product.quantity|intcomma }}</td>
+                        <td>{{ product.category|default:"-" }}</td>
+                        <td class="text-right">{{ product.reorder_level|intcomma }}</td>
+                        <td>
+                            <span class="stock-status {% if product.quantity <= 0 %}status-out{% elif product.quantity <= product.reorder_level %}status-low{% else %}status-ok{% endif %}">
+                                {{ product.stock_status }}
+                            </span>
+                        </td>
+                        <td class="text-right">₦{{ product.inventory_value|floatformat:2|intcomma }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2rem; color: #64748b;">
+                            <i class="fas fa-box-open" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
+                            No inventory items found
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Top Selling Products -->
+    <div class="table-card">
+        <div class="chart-header">
+            <div class="chart-title">
+                <i class="fas fa-trophy text-danger"></i>
+                Top Selling Products
+            </div>
+        </div>
+        <div class="chart-container">
+            <canvas id="topProductsChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         // Date input toggling
-
-        // Debug checks
-        console.log('Chart.js loaded:', typeof Chart !== 'undefined');
-        console.log('Canvas elements:', {
-            sales: document.getElementById('salesTrendChart'),
-            inventory: document.getElementById('inventoryChart'),
-            topProducts: document.getElementById('topProductsChart')
-        })
-
         const periodSelect = document.getElementById('periodSelect');
         const startDate = document.getElementById('startDate');
         const endDate = document.getElementById('endDate');
@@ -369,57 +583,60 @@
         // Chart initialization
         try {
             const chartData = JSON.parse('{{ chart_data|escapejs }}');
-            if (!chartData) throw new Error('Chart data is empty');
-
-            // Sales Trend Chart (Dual-axis line)
+            
+            // Sales Trend Chart
             const salesCtx = document.getElementById('salesTrendChart').getContext('2d');
             new Chart(salesCtx, {
                 type: 'line',
                 data: {
                     labels: chartData.sales_trend.dates,
                     datasets: [{
-                        label: 'Revenue (N)',
+                        label: 'Revenue (₦)',
                         data: chartData.sales_trend.revenues,
                         borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                        yAxisID: 'yRevenue',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 3,
                         fill: true,
-                        tension: 0.3
+                        tension: 0.4
                     }, {
                         label: 'Units Sold',
                         data: chartData.sales_trend.quantities,
                         borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                        yAxisID: 'yQuantity',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
                         fill: true,
-                        tension: 0.3
+                        tension: 0.4
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: {
-                        yRevenue: {
-                            type: 'linear',
-                            position: 'left',
-                            title: { display: true, text: 'Revenue (N)' },
-                            ticks: { callback: value => 'N' + value.toLocaleString() }
-                        },
-                        yQuantity: {
-                            type: 'linear',
-                            position: 'right',
-                            title: { display: true, text: 'Units' },
-                            grid: { drawOnChartArea: false }
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20
+                            }
                         }
                     },
-                    plugins: {
-                        tooltip: { mode: 'index', intersect: false },
-                        legend: { position: 'top' }
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
                     }
                 }
             });
 
-            // Inventory Value by Category (Doughnut with hover effects)
+            // Inventory Chart
             const inventoryCtx = document.getElementById('inventoryChart').getContext('2d');
             new Chart(inventoryCtx, {
                 type: 'doughnut',
@@ -427,23 +644,32 @@
                     labels: chartData.inventory_by_category.labels,
                     datasets: [{
                         data: chartData.inventory_by_category.values,
-                        backgroundColor: ['#ef4444', '#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'],
-                        borderColor: '#ffffff',
-                        borderWidth: 2,
-                        hoverOffset: 20
+                        backgroundColor: [
+                            '#ef4444', '#3b82f6', '#f59e0b', 
+                            '#10b981', '#8b5cf6', '#ec4899',
+                            '#06b6d4', '#84cc16', '#f97316'
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 15
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    cutout: '65%',
                     plugins: {
-                        legend: { position: 'bottom', labels: { font: { size: 14 } } },
-                        tooltip: { callbacks: { label: ctx => `${ctx.label}: N${ctx.raw.toLocaleString()}` } }
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        }
                     }
                 }
             });
 
-            // Top Selling Products (Horizontal bar with revenue)
+            // Top Products Chart
             const topProductsCtx = document.getElementById('topProductsChart').getContext('2d');
             new Chart(topProductsCtx, {
                 type: 'bar',
@@ -453,117 +679,57 @@
                         label: 'Units Sold',
                         data: chartData.top_products.sales,
                         backgroundColor: '#ef4444',
-                        borderColor: '#dc2626',
-                        borderWidth: 1
-                    }, {
-                        label: 'Revenue (N)',
-                        data: chartData.top_products.revenues,
-                        backgroundColor: 'rgba(239, 68, 68, 0.5)',
-                        borderColor: 'rgba(220, 38, 38, 0.8)',
-                        borderWidth: 1,
-                        type: 'line'
+                        borderRadius: 6
                     }]
                 },
                 options: {
-                    indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: {
-                        x: { beginAtZero: true, title: { display: true, text: 'Units & Revenue' } }
-                    },
+                    indexAxis: 'y',
                     plugins: {
-                        legend: { position: 'bottom' },
-                        tooltip: {
-                            callbacks: {
-                                label: ctx => {
-                                    const label = ctx.dataset.label || '';
-                                    return `${label}: ${ctx.raw.toLocaleString()} ${label.includes('Revenue') ? 'N' : 'units'}`;
-                                }
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: {
+                                drawBorder: false
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
                             }
                         }
                     }
                 }
             });
-            function renderCharts(data) {
-                const charts = Chart.instances;
-                charts.forEach(chart => {
-                    if (chart.canvas.id === 'salesTrendChart') {
-                        chart.data.labels = data.sales_trend.dates;
-                        chart.data.datasets[0].data = data.sales_trend.revenues;
-                        chart.data.datasets[1].data = data.sales_trend.quantities;
-                    } else if (chart.canvas.id === 'inventoryChart') {
-                        chart.data.labels = data.inventory_by_category.labels;
-                        chart.data.datasets[0].data = data.inventory_by_category.values;
-                    } else if (chart.canvas.id === 'topProductsChart') {
-                        chart.data.labels = data.top_products.labels;
-                        chart.data.datasets[0].data = data.top_products.sales;
-                        chart.data.datasets[1].data = data.top_products.revenues;
-                    }
-                    chart.update();
-                });
-            }
 
-            // Real-time updates (every 5 minutes) with offline fallback
-            function updateCharts() {
-                if (!navigator.onLine) {
-                    console.log("Offline mode: loading cached chart data.");
-                    db.chartCache.get("latest").then(cached => {
-                        if (cached && cached.data) {
-                            renderCharts(cached.data); // custom function to update charts
-                        }
-                    });
-                    return;
-                }
-
-                fetch('/api/chart-data/?period=' + periodSelect.value + '&start_date=' + startDate.value + '&end_date=' + endDate.value)
-                    .then(response => response.json())
-                    .then(data => {
-                        // Save to Dexie for offline use
-                        db.chartCache.put({ key: "latest", data });
-
-                        renderCharts(data);
-                    })
-                    .catch(error => console.error('Error updating charts:', error));
-            }
-
-            setInterval(updateCharts, 5 * 60 * 1000);
-            updateCharts();
-
-
-            // Date range buttons for Sales Trend
+            // Date range buttons
             document.querySelectorAll('.chart-btn').forEach(btn => {
                 btn.addEventListener('click', function () {
                     document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
-                    const range = this.getAttribute('data-range');
-                    fetch(`/api/chart-data/?period=custom&range=${range}&start_date=${startDate.value}&end_date=${endDate.value}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            const chart = Chart.getChart('salesTrendChart');
-                            chart.data.labels = data.sales_trend.dates;
-                            chart.data.datasets[0].data = data.sales_trend.revenues;
-                            chart.data.datasets[1].data = data.sales_trend.quantities;
-                            chart.update();
-                        });
+                    // Add your range update logic here
                 });
             });
 
         } catch (error) {
             console.error('Chart initialization error:', error);
-            const containers = document.querySelectorAll('.chart-container');
-            containers.forEach(container => {
-                const ctx = container.querySelector('canvas').getContext('2d');
-                ctx.font = "1.25rem Arial";
-                ctx.fillStyle = "#64748b";
-                ctx.textAlign = "center";
-                ctx.fillText("Error loading chart data", container.offsetWidth / 2, container.offsetHeight / 2);
-            });
         }
+
+        // Add hover animations
+        const kpiCards = document.querySelectorAll('.kpi-card');
+        kpiCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
     });
 </script>
-{% endblock %}
-{% block footer %}
-<div class="text-center text-muted mt-4">
-    &copy; {{ current_year }} Inventory Management System. All rights reserved.
-</div>
 {% endblock %}

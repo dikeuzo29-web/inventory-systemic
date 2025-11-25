@@ -2,115 +2,527 @@
 {% load static %}
 {% load humanize %}
 
+{% block title %}Bottle Returns - InventoryPro{% endblock %}
+
+{% block page_title %}Bottle Returns Management{% endblock %}
+{% block page_subtitle %}Process bottle returns and manage deposit refunds{% endblock %}
+
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="h3 mb-0 text-gray-800">Bottle Returns</h2>
+<style>
+    .returns-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 600;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-select, .form-input {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #f8fafc;
+    }
+
+    .form-select:focus, .form-input:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .info-box {
+        background: #f0f9ff;
+        border: 1px solid #bae6fd;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .info-label {
+        color: #475569;
+        font-weight: 500;
+    }
+
+    .info-value {
+        color: #0c4a6e;
+        font-weight: 600;
+    }
+
+    .submit-btn {
+        width: 100%;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        padding: 1rem 1.5rem;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+    }
+
+    .submit-btn:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        border-radius: 0 0 12px 12px;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .data-table th {
+        background: #f8fafc;
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: #475569;
+        border-bottom: 2px solid #e2e8f0;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .data-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+        color: #374151;
+    }
+
+    .data-table tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    .data-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .empty-state {
+        padding: 3rem 2rem;
+        text-align: center;
+        color: #64748b;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .refund-amount {
+        font-weight: 700;
+        color: #059669;
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-processed {
+        background: #f0fdf4;
+        color: #16a34a;
+    }
+
+    .quantity-input {
+        position: relative;
+    }
+
+    .quantity-controls {
+        position: absolute;
+        right: 0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 0.125rem;
+    }
+
+    .quantity-btn {
+        background: #e2e8f0;
+        border: none;
+        width: 24px;
+        height: 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        transition: background 0.3s ease;
+    }
+
+    .quantity-btn:hover {
+        background: #cbd5e1;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .returns-container {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .card-body {
+            padding: 1rem;
+        }
+        
+        .data-table {
+            font-size: 0.875rem;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 0.75rem 0.5rem;
+        }
+        
+        .info-item {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .card-header {
+            padding: 1rem;
+            font-size: 0.875rem;
+        }
+        
+        .form-select, .form-input {
+            padding: 0.75rem;
+        }
+    }
+</style>
+
+<!-- Messages Display -->
+{% if messages %}
+<div class="messages-container">
+    {% for message in messages %}
+    <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %}">
+        {{ message }}
     </div>
+    {% endfor %}
+</div>
+{% endif %}
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
-
-    <div class="row">
-        <div class="col-lg-5 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-undo-alt me-2"></i>Process Return
-                    </h6>
+<div class="returns-container">
+    <!-- Process Return Card -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-undo-alt"></i>
+            Process Bottle Return
+        </div>
+        <div class="card-body">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="{{ form.product.id_for_label }}" class="form-label">
+                        Select Product
+                    </label>
+                    <select name="product" id="{{ form.product.id_for_label }}" class="form-select" required>
+                        <option value="">Choose a product...</option>
+                        {% for product in form.product.field.queryset %}
+                            <option value="{{ product.id }}" 
+                                    data-deposit="{{ product.deposit_amount }}"
+                                    data-outstanding="{{ product.bottles_outstanding }}"
+                                    {% if product.id == form.initial.product.id %}selected{% endif %}>
+                                {{ product.name }} - ₦{{ product.deposit_amount|intcomma }} deposit
+                            </option>
+                        {% endfor %}
+                    </select>
+                    {% if form.product.errors %}
+                        <div style="color: #ef4444; font-size: 0.875rem; margin-top: 0.5rem;">
+                            {{ form.product.errors }}
+                        </div>
+                    {% endif %}
                 </div>
-                <div class="card-body">
-                    <form method="post" novalidate>
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="{{ form.product.id_for_label }}" class="form-label fw-bold">
-                                {{ form.product.label }}
-                            </label>
-                            {{ form.product }}
-                            {% if form.product.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ form.product.errors }}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="{{ form.quantity.id_for_label }}" class="form-label fw-bold">
-                                {{ form.quantity.label }}
-                            </label>
-                            {{ form.quantity }}
-                            {% if form.quantity.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ form.quantity.errors }}
-                                </div>
-                            {% endif %}
-                            <small class="text-muted">Outstanding: 
-                                <span id="outstanding-bottles">{{ product_data.bottles_outstanding|default:"0" }}</span>
-                            </small>
-                        </div>
-                        
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-check-circle me-2"></i> Process Refund
+                
+                <div class="form-group">
+                    <label for="{{ form.quantity.id_for_label }}" class="form-label">
+                        Return Quantity
+                    </label>
+                    <div class="quantity-input">
+                        <input type="number" 
+                               name="quantity" 
+                               id="{{ form.quantity.id_for_label }}" 
+                               class="form-input" 
+                               min="1" 
+                               value="{{ form.quantity.value|default:'1' }}"
+                               required>
+                        <div class="quantity-controls">
+                            <button type="button" class="quantity-btn" onclick="adjustQuantity(1)">
+                                <i class="fas fa-chevron-up"></i>
+                            </button>
+                            <button type="button" class="quantity-btn" onclick="adjustQuantity(-1)">
+                                <i class="fas fa-chevron-down"></i>
                             </button>
                         </div>
-                    </form>
+                    </div>
+                    {% if form.quantity.errors %}
+                        <div style="color: #ef4444; font-size: 0.875rem; margin-top: 0.5rem;">
+                            {{ form.quantity.errors }}
+                        </div>
+                    {% endif %}
                 </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-7">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-history me-2"></i>Recent Returns
-                    </h6>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Product</th>
-                                    <th class="text-end">Qty</th>
-                                    <th class="text-end">Refund</th>
-                                    <th>Processed By</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for return in recent_returns %}
-                                    <tr>
-                                        <td>{{ return.timestamp|date:"M j, H:i" }}</td>
-                                        <td>{{ return.product.name }}</td>
-                                        <td class="text-end">{{ return.quantity }}</td>
-                                        <td class="text-end">₦{{ return.deposit_amount|intcomma }}</td>
-                                        <td>{{ return.created_by.get_full_name }}</td>
-                                    </tr>
-                                {% empty %}
-                                    <tr>
-                                        <td colspan="5" class="text-center py-4 text-muted">
-                                            No returns processed yet
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+
+                <!-- Product Information -->
+                <div class="info-box" id="productInfo" style="display: none;">
+                    <div class="info-item">
+                        <span class="info-label">Outstanding Bottles:</span>
+                        <span class="info-value" id="outstandingCount">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Deposit Amount:</span>
+                        <span class="info-value">₦<span id="depositAmount">0</span></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Total Refund:</span>
+                        <span class="info-value refund-amount">₦<span id="totalRefund">0</span></span>
                     </div>
                 </div>
-            </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <i class="fas fa-check-circle"></i>
+                    Process Refund
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Recent Returns Card -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-history"></i>
+            Recent Returns
+        </div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Product</th>
+                        <th class="text-right">Qty</th>
+                        <th class="text-right">Refund</th>
+                        <th>Processed By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for return in recent_returns %}
+                    <tr>
+                        <td>
+                            <div style="font-weight: 600;">{{ return.timestamp|date:"M j, Y" }}</div>
+                            <div style="font-size: 0.75rem; color: #64748b;">{{ return.timestamp|date:"H:i" }}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 600;">{{ return.product.name }}</div>
+                            <div style="font-size: 0.75rem; color: #64748b;">₦{{ return.deposit_amount|intcomma }}/unit</div>
+                        </td>
+                        <td class="text-right" style="font-weight: 600;">{{ return.quantity }}</td>
+                        <td class="text-right">
+                            <span class="refund-amount">₦{{ return.amount|abs|floatformat:2|intcomma }}</span>
+                        </td>
+                        <td>
+                            <div style="font-weight: 600;">{{ return.created_by.get_full_name|default:return.created_by.username }}</div>
+                            <span class="status-badge status-processed">Processed</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <div>No returns processed yet</div>
+                                <div style="font-size: 0.875rem; margin-top: 0.5rem;">
+                                    Process a bottle return to see it here
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
-<script src="{% static 'js/dexie.min.js' %}"></script>
-<script src="{% static 'js/offline_sync.js' %}"></script>
-<script src="{% static 'js/bottle_returns.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const productSelect = document.getElementById('{{ form.product.id_for_label }}');
+        const quantityInput = document.getElementById('{{ form.quantity.id_for_label }}');
+        const productInfo = document.getElementById('productInfo');
+        const outstandingCount = document.getElementById('outstandingCount');
+        const depositAmount = document.getElementById('depositAmount');
+        const totalRefund = document.getElementById('totalRefund');
+        const submitBtn = document.getElementById('submitBtn');
+
+        function updateProductInfo() {
+            const selectedOption = productSelect.options[productSelect.selectedIndex];
+            
+            if (selectedOption.value) {
+                const deposit = parseFloat(selectedOption.getAttribute('data-deposit')) || 0;
+                const outstanding = parseInt(selectedOption.getAttribute('data-outstanding')) || 0;
+                const quantity = parseInt(quantityInput.value) || 0;
+                
+                // Update display
+                depositAmount.textContent = deposit.toLocaleString();
+                outstandingCount.textContent = outstanding.toLocaleString();
+                
+                // Calculate total refund
+                const refund = deposit * quantity;
+                totalRefund.textContent = refund.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                
+                // Show product info
+                productInfo.style.display = 'block';
+                
+                // Validate quantity
+                if (quantity > outstanding) {
+                    quantityInput.style.borderColor = '#ef4444';
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Quantity exceeds outstanding';
+                } else if (quantity <= 0) {
+                    quantityInput.style.borderColor = '#ef4444';
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Enter valid quantity';
+                } else {
+                    quantityInput.style.borderColor = '#10b981';
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Process Refund - ₦' + refund.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                }
+            } else {
+                // Hide product info if no product selected
+                productInfo.style.display = 'none';
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Process Refund';
+            }
+        }
+
+        function adjustQuantity(change) {
+            const currentValue = parseInt(quantityInput.value) || 0;
+            const newValue = Math.max(1, currentValue + change);
+            quantityInput.value = newValue;
+            updateProductInfo();
+        }
+
+        // Event listeners
+        productSelect.addEventListener('change', updateProductInfo);
+        quantityInput.addEventListener('input', updateProductInfo);
+        quantityInput.addEventListener('change', updateProductInfo);
+
+        // Initialize on page load
+        updateProductInfo();
+
+        // Add animation to submit button
+        submitBtn.addEventListener('mouseenter', function() {
+            if (!this.disabled) {
+                this.style.transform = 'translateY(-2px)';
+            }
+        });
+        
+        submitBtn.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+
+        // Auto-select first product if only one exists
+        if (productSelect.options.length === 2) { // 1 for default option + 1 product
+            productSelect.selectedIndex = 1;
+            updateProductInfo();
+        }
+    });
+
+    // Global function for quantity buttons
+    function adjustQuantity(change) {
+        const quantityInput = document.getElementById('{{ form.quantity.id_for_label }}');
+        const currentValue = parseInt(quantityInput.value) || 0;
+        const newValue = Math.max(1, currentValue + change);
+        quantityInput.value = newValue;
+        
+        // Trigger the input event to update calculations
+        const event = new Event('input', { bubbles: true });
+        quantityInput.dispatchEvent(event);
+    }
+</script>
 
 {% endblock %}
