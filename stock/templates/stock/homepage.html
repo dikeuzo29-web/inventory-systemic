@@ -4,15 +4,156 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Inventory System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InventoryPro - Smart Stock Management</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    </style>
 </head>
-<body>
-    <h1>Welcome to Inventory System ✅</h1>
-    <p>Select an option:</p>
-    <ul>
-        <li><a href="{% url 'accounts:login' %}">Login</a></li>
-        <li><a href="{% url 'accounts:logout' %}">Logout</a></li>
-        <li><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
-    </ul>
+<body style="margin: 0; padding: 0; font-family: 'Inter', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
+
+    <!-- Header -->
+    <header style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 1rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.2);">
+        <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 40px; height: 40px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #667eea;">IP</div>
+                <h1 style="color: white; margin: 0; font-size: 1.5rem; font-weight: 600;">InventoryPro</h1>
+            </div>
+            <nav>
+                {% if user.is_authenticated %}
+                    <span style="color: white; margin-right: 20px;">Welcome, <strong>{{ user.username }}</strong>!</span>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main style="max-width: 1200px; margin: 0 auto; padding: 3rem 2rem;">
+        <!-- Hero Section -->
+        <section style="text-align: center; color: white; margin-bottom: 4rem;">
+            <h1 style="font-size: 3.5rem; font-weight: 700; margin-bottom: 1rem; background: linear-gradient(45deg, #fff, #e0e7ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                Smart Inventory Management
+            </h1>
+            <p style="font-size: 1.3rem; margin-bottom: 2rem; opacity: 0.9; max-width: 600px; margin-left: auto; margin-right: auto;">
+                Streamline your stock control, track sales, and manage returns with our powerful inventory system
+            </p>
+            
+            <!-- Quick Stats -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin: 3rem 0;">
+                <div style="background: rgba(255,255,255,0.1); padding: 2rem; border-radius: 15px; backdrop-filter: blur(10px);">
+                    <div style="font-size: 2.5rem; font-weight: bold; margin-bottom: 0.5rem;">📦</div>
+                    <h3 style="margin: 0 0 0.5rem 0;">Stock Tracking</h3>
+                    <p style="margin: 0; opacity: 0.8;">Real-time inventory updates</p>
+                </div>
+                <div style="background: rgba(255,255,255,0.1); padding: 2rem; border-radius: 15px; backdrop-filter: blur(10px);">
+                    <div style="font-size: 2.5rem; font-weight: bold; margin-bottom: 0.5rem;">💰</div>
+                    <h3 style="margin: 0 0 0.5rem 0;">Sales Management</h3>
+                    <p style="margin: 0; opacity: 0.8;">Easy point-of-sale system</p>
+                </div>
+                <div style="background: rgba(255,255,255,0.1); padding: 2rem; border-radius: 15px; backdrop-filter: blur(10px);">
+                    <div style="font-size: 2.5rem; font-weight: bold; margin-bottom: 0.5rem;">🔄</div>
+                    <h3 style="margin: 0 0 0.5rem 0;">Bottle Returns</h3>
+                    <p style="margin: 0; opacity: 0.8;">Automated deposit handling</p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Action Section -->
+        <section style="background: white; border-radius: 20px; padding: 3rem; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <h2 style="color: #1f2937; font-size: 2rem; margin-bottom: 1rem;">Get Started</h2>
+                <p style="color: #6b7280; font-size: 1.1rem;">Choose your action below</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                {% if user.is_authenticated %}
+                    <!-- Dashboard -->
+                    <a href="{% url 'accounts:dashboard' %}" style="display: block; background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 2rem; border-radius: 15px; text-decoration: none; transition: transform 0.3s ease, box-shadow 0.3s ease; text-align: center;">
+                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">📊</div>
+                        <h3 style="margin: 0 0 0.5rem 0; font-size: 1.3rem;">Dashboard</h3>
+                        <p style="margin: 0; opacity: 0.9;">View analytics and overview</p>
+                    </a>
+
+                    <!-- Role-based Navigation -->
+                    {% if user.role == 'manager' %}
+                        <a href="{% url 'manage_products' %}" style="display: block; background: linear-gradient(135deg, #f093fb, #f5576c); color: white; padding: 2rem; border-radius: 15px; text-decoration: none; transition: transform 0.3s ease, box-shadow 0.3s ease; text-align: center;">
+                            <div style="font-size: 2.5rem; margin-bottom: 1rem;">📦</div>
+                            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.3rem;">Manage Products</h3>
+                            <p style="margin: 0; opacity: 0.9;">Add, edit, and track inventory</p>
+                        </a>
+
+                        <a href="{% url 'manage_restock' %}" style="display: block; background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; padding: 2rem; border-radius: 15px; text-decoration: none; transition: transform 0.3s ease, box-shadow 0.3s ease; text-align: center;">
+                            <div style="font-size: 2.5rem; margin-bottom: 1rem;">🔄</div>
+                            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.3rem;">Restock</h3>
+                            <p style="margin: 0; opacity: 0.9;">Add new inventory items</p>
+                        </a>
+
+                        <a href="{% url 'manage_categories' %}" style="display: block; background: linear-gradient(135deg, #43e97b, #38f9d7); color: white; padding: 2rem; border-radius: 15px; text-decoration: none; transition: transform 0.3s ease, box-shadow 0.3s ease; text-align: center;">
+                            <div style="font-size: 2.5rem; margin-bottom: 1rem;">🏷️</div>
+                            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.3rem;">Categories</h3>
+                            <p style="margin: 0; opacity: 0.9;">Organize product categories</p>
+                        </a>
+                    {% endif %}
+
+                    {% if user.role == 'cashier' or user.role == 'manager' %}
+                        <a href="{% url 'manage_sales' %}" style="display: block; background: linear-gradient(135deg, #ff9a9e, #fecfef); color: white; padding: 2rem; border-radius: 15px; text-decoration: none; transition: transform 0.3s ease, box-shadow 0.3s ease; text-align: center;">
+                            <div style="font-size: 2.5rem; margin-bottom: 1rem;">💰</div>
+                            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.3rem;">Sales</h3>
+                            <p style="margin: 0; opacity: 0.9;">Process customer sales</p>
+                        </a>
+
+                        <a href="{% url 'manage_bottle_returns' %}" style="display: block; background: linear-gradient(135deg, #a8edea, #fed6e3); color: #333; padding: 2rem; border-radius: 15px; text-decoration: none; transition: transform 0.3s ease, box-shadow 0.3s ease; text-align: center;">
+                            <div style="font-size: 2.5rem; margin-bottom: 1rem;">🥤</div>
+                            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.3rem;">Bottle Returns</h3>
+                            <p style="margin: 0; opacity: 0.8;">Process deposit returns</p>
+                        </a>
+                    {% endif %}
+
+                    <!-- Logout -->
+                    <a href="{% url 'accounts:logout' %}" style="display: block; background: #f8fafc; color: #64748b; padding: 2rem; border-radius: 15px; text-decoration: none; transition: transform 0.3s ease, box-shadow 0.3s ease; text-align: center; border: 2px solid #e2e8f0;">
+                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">🚪</div>
+                        <h3 style="margin: 0 0 0.5rem 0; font-size: 1.3rem;">Logout</h3>
+                        <p style="margin: 0; opacity: 0.8;">Sign out of your account</p>
+                    </a>
+
+                {% else %}
+                    <!-- Login for non-authenticated users -->
+                    <a href="{% url 'accounts:login' %}" style="display: block; background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 2.5rem; border-radius: 15px; text-decoration: none; transition: transform 0.3s ease, box-shadow 0.3s ease; text-align: center; grid-column: 1 / -1; max-width: 400px; margin: 0 auto;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🔐</div>
+                        <h3 style="margin: 0 0 1rem 0; font-size: 1.5rem;">Login to InventoryPro</h3>
+                        <p style="margin: 0; opacity: 0.9; font-size: 1.1rem;">Access your inventory management dashboard</p>
+                    </a>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer style="background: rgba(0,0,0,0.2); color: white; text-align: center; padding: 2rem; margin-top: 4rem;">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <p style="margin: 0; opacity: 0.8;">&copy; 2024 InventoryPro. All rights reserved.</p>
+            <p style="margin: 0.5rem 0 0 0; opacity: 0.6; font-size: 0.9rem;">Smart inventory management for modern businesses</p>
+        </div>
+    </footer>
+
+    <!-- Hover Effects Script -->
+    <script>
+        // Add hover effects to all links
+        document.addEventListener('DOMContentLoaded', function() {
+            const links = document.querySelectorAll('a');
+            links.forEach(link => {
+                link.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px)';
+                    this.style.boxShadow = '0 15px 30px rgba(0,0,0,0.2)';
+                });
+                link.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
+                });
+            });
+        });
+    </script>
+
 </body>
 </html>
