@@ -112,7 +112,6 @@ def dashboard(request):
             else:
                 end_datetime = start_datetime.replace(month=start_datetime.month + 1)
 
-
     # Filter transactions using the calculated timezone-aware datetime range
     transactions = Transaction.objects.filter(
         timestamp__gte=start_datetime,
@@ -193,19 +192,32 @@ def dashboard(request):
         'values': [float(item['total_value']) for item in category_value]
     }
 
-    # 3. Top Selling Products
+    # 3. Top Selling Products - FIXED QUERY
     top_products_data = (
         transactions
-        .values('product__name')
-        .annotate(total_sold=Coalesce(Sum('quantity'), 0))
+        .values('product__name', 'product__id')
+        .annotate(
+            total_sold=Coalesce(Sum('quantity'), 0),
+            total_revenue=Coalesce(Sum(revenue_expr), Decimal(0))
+        )
         .order_by('-total_sold')[:5]
-        .annotate(total_revenue=Sum(F('quantity') * F('product__price')))
     )
+
+    # Format top products data for chart
+    top_products = {
+        'labels': [item['product__name'] for item in top_products_data],
+        'sales': [item['total_sold'] for item in top_products_data],
+        'revenues': [float(item['total_revenue']) for item in top_products_data]
+    }
+
+    # Debug: Print top products to console
+    print("Top Products Data:", list(top_products_data))
+    print("Top Products Formatted:", top_products)
 
     chart_data = {
         'sales_trend': sales_trend,
         'inventory_by_category': inventory_by_category,
-        'top_products': top_products_data
+        'top_products': top_products  # Use the formatted dict instead of raw queryset
     }
 
     context = {

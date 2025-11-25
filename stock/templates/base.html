@@ -590,5 +590,173 @@
     <!-- Extra scripts from child templates -->
     {% endblock %}
 
+    <!-- PWA Install Prompt -->
+<div id="installPrompt" style="display: none; position: fixed; bottom: 20px; right: 20px; background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 10000; max-width: 320px; border: 2px solid #667eea;">
+    <div style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem;">
+        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-download" style="color: white; font-size: 1.2rem;"></i>
+        </div>
+        <div>
+            <h4 style="margin: 0 0 0.5rem 0; color: #1e293b;">Install InventoryPro</h4>
+            <p style="margin: 0; color: #64748b; font-size: 0.875rem;">Install our app for a better experience. Fast, reliable, and works offline!</p>
+        </div>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+        <button id="installButton" style="flex: 1; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 0.75rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+            Install App
+        </button>
+        <button id="dismissPrompt" style="background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; padding: 0.75rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+            Later
+        </button>
+    </div>
+</div>
+
+<script>
+// PWA Installation Prompt
+let deferredPrompt;
+const installPrompt = document.getElementById('installPrompt');
+const installButton = document.getElementById('installButton');
+const dismissButton = document.getElementById('dismissPrompt');
+
+// Check if the app is already installed
+function isAppInstalled() {
+    return window.matchMedia('(display-mode: standalone)').matches || 
+           window.navigator.standalone === true ||
+           document.referrer.includes('android-app://');
+}
+
+// Show the install prompt
+function showInstallPrompt() {
+    // Don't show if already installed or if user dismissed recently
+    if (isAppInstalled() || localStorage.getItem('installPromptDismissed')) {
+        return;
+    }
+    
+    // Wait a bit before showing to not interrupt user immediately
+    setTimeout(() => {
+        installPrompt.style.display = 'block';
+        // Add animation
+        installPrompt.style.animation = 'slideInUp 0.5s ease-out';
+    }, 3000);
+}
+
+// Hide the install prompt
+function hideInstallPrompt() {
+    installPrompt.style.animation = 'slideOutDown 0.3s ease-in';
+    setTimeout(() => {
+        installPrompt.style.display = 'none';
+    }, 300);
+}
+
+// Listen for beforeinstallprompt event
+window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevent the mini-infobar from appearing on mobile
+    e.preventDefault();
+    // Stash the event so it can be triggered later
+    deferredPrompt = e;
+    
+    // Show our custom install prompt
+    showInstallPrompt();
+});
+
+// Install button click handler
+installButton.addEventListener('click', async () => {
+    if (!deferredPrompt) {
+        // If deferredPrompt isn't available, just hide the prompt
+        hideInstallPrompt();
+        return;
+    }
+    
+    // Show the install prompt
+    deferredPrompt.prompt();
+    
+    // Wait for the user to respond to the prompt
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+        console.log('User accepted the install prompt');
+        // Hide our custom prompt
+        hideInstallPrompt();
+    } else {
+        console.log('User dismissed the install prompt');
+    }
+    
+    // Clear the saved prompt since it can't be used again
+    deferredPrompt = null;
+});
+
+// Dismiss button click handler
+dismissButton.addEventListener('click', () => {
+    hideInstallPrompt();
+    // Remember dismissal for 7 days
+    localStorage.setItem('installPromptDismissed', 'true');
+    const sevenDays = 7 * 24 * 60 * 60 * 1000;
+    setTimeout(() => {
+        localStorage.removeItem('installPromptDismissed');
+    }, sevenDays);
+});
+
+// Check if app is successfully installed
+window.addEventListener('appinstalled', () => {
+    console.log('PWA was installed');
+    deferredPrompt = null;
+    hideInstallPrompt();
+});
+
+// Add CSS animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes slideOutDown {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+    }
+    
+    #installButton:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    
+    #dismissPrompt:hover {
+        background: #e2e8f0;
+    }
+`;
+document.head.appendChild(style);
+
+// Check on page load if we should show the prompt
+window.addEventListener('load', () => {
+    // If the beforeinstallprompt event hasn't fired, check if we can show a fallback
+    if (!deferredPrompt && !isAppInstalled() && !localStorage.getItem('installPromptDismissed')) {
+        // Check if the browser supports PWA installation
+        if (window.navigator.standalone !== undefined || 
+            window.matchMedia('(display-mode: standalone)').matches !== undefined) {
+            // Show a less prominent prompt after a longer delay
+            setTimeout(() => {
+                if (!isAppInstalled() && !localStorage.getItem('installPromptDismissed')) {
+                    installPrompt.style.display = 'block';
+                    installPrompt.style.animation = 'slideInUp 0.5s ease-out';
+                }
+            }, 10000);
+        }
+    }
+});
+</script>
+
 </body>
 </html>
