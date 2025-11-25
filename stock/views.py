@@ -322,9 +322,9 @@ def manage_restock(request):
                 restock.transaction_type = 'restock'
                 restock.created_by = request.user
                 restock.save()
-                product = restock.product
-                # Automatic stock balancing: add restocked quantity.
-                product.quantity += restock.quantity
+                # product = restock.product
+                # # Automatic stock balancing: add restocked quantity.
+                # product.quantity += restock.quantity
                 #product.save()
                 return redirect('manage_restock')
     else:
