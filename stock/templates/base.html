@@ -393,69 +393,224 @@
 </head>
 
 <body>
-    <nav>
-        <a href="{% url 'accounts:dashboard' %}" class="nav-brand">
-            <img src="{% static 'image/itekton-logo.jpg' %}" alt="InventoryPro Logo" height="35">
-            <span>InventoryPro</span>
+    <!-- Replace your existing nav section in base.html with this improved version -->
+<nav>
+    <a href="{% url 'accounts:dashboard' %}" class="nav-brand">
+        <img src="{% static 'image/itekton-logo.jpg' %}" alt="InventoryPro Logo" height="35">
+        <span>InventoryPro</span>
+    </a>
+
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" id="mobileMenuBtn">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    {% if user.is_authenticated %}
+    <div class="nav-links" id="navLinks">
+        <a href="{% url 'accounts:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <i class="fas fa-chart-line"></i>
+            Dashboard
         </a>
-
-        {% if user.is_authenticated %}
-        <div class="nav-links">
-            <a href="{% url 'accounts:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                <i class="fas fa-chart-line"></i>
-                Dashboard
-            </a>
-            
-            {% if user.role == 'manager' %}
-            <a href="{% url 'manage_categories' %}" class="nav-link {% if request.resolver_match.url_name == 'manage_categories' %}active{% endif %}">
-                <i class="fas fa-tags"></i>
-                Categories
-            </a>
-            <a href="{% url 'manage_products' %}" class="nav-link {% if request.resolver_match.url_name == 'manage_products' %}active{% endif %}">
-                <i class="fas fa-boxes"></i>
-                Products
-            </a>
-            {% endif %}
-            
-            {% if user.role == 'cashier' or user.role == 'manager' %}
-            <a href="/api/stock/sales/" class="nav-link">
-                <i class="fas fa-shopping-cart"></i>
-                Sales
-            </a>
-            <a href="{% url 'manage_bottle_returns' %}" class="nav-link">
-                <i class="fas fa-recycle"></i>
-                Returns
-            </a>
-            {% endif %}
-            
-            {% if user.role == 'manager' %}
-            <a href="/api/stock/restock/" class="nav-link">
-                <i class="fas fa-truck"></i>
-                Restock
-            </a>
-            {% endif %}
-        </div>
+        
+        {% if user.role == 'manager' %}
+        <a href="{% url 'manage_categories' %}" class="nav-link {% if request.resolver_match.url_name == 'manage_categories' %}active{% endif %}">
+            <i class="fas fa-tags"></i>
+            Categories
+        </a>
+        <a href="{% url 'manage_products' %}" class="nav-link {% if request.resolver_match.url_name == 'manage_products' %}active{% endif %}">
+            <i class="fas fa-boxes"></i>
+            Products
+        </a>
         {% endif %}
+        
+        {% if user.role == 'cashier' or user.role == 'manager' %}
+        <a href="/api/stock/sales/" class="nav-link">
+            <i class="fas fa-shopping-cart"></i>
+            Sales
+        </a>
+        <a href="{% url 'manage_bottle_returns' %}" class="nav-link">
+            <i class="fas fa-recycle"></i>
+            Returns
+        </a>
+        {% endif %}
+        
+        {% if user.role == 'manager' %}
+        <a href="/api/stock/restock/" class="nav-link">
+            <i class="fas fa-truck"></i>
+            Restock
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
 
-        <div class="nav-actions">
-            {% if user.is_authenticated %}
-            <span class="welcome-text">Welcome, <strong>{{ user.username }}</strong></span>
-            <form method="post" action="{% url 'accounts:logout' %}" style="display: inline;">
-                {% csrf_token %}
-                <button type="submit" class="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    Logout
-                </button>
-            </form>
-            {% else %}
-            <a href="{% url 'accounts:login' %}" class="login-btn">
-                <i class="fas fa-sign-in-alt"></i>
-                Login
-            </a>
-            {% endif %}
-        </div>
-    </nav>
+    <div class="nav-actions">
+        {% if user.is_authenticated %}
+        <span class="welcome-text">Welcome, <strong>{{ user.username }}</strong></span>
+        <form method="post" action="{% url 'accounts:logout' %}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </form>
+        {% else %}
+        <a href="{% url 'accounts:login' %}" class="login-btn">
+            <i class="fas fa-sign-in-alt"></i>
+            Login
+        </a>
+        {% endif %}
+    </div>
+</nav>
 
+<style>
+    /* Mobile Menu Button Styles */
+    .mobile-menu-btn {
+        display: none;
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        padding: 0.5rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1.2rem;
+        width: 40px;
+        height: 40px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Enhanced Mobile Navigation */
+    @media (max-width: 768px) {
+        .mobile-menu-btn {
+            display: flex;
+        }
+
+        .nav-links {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(255,255,255,0.98);
+            backdrop-filter: blur(20px);
+            flex-direction: column;
+            padding: 1rem;
+            border-radius: 0 0 16px 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 1000;
+            border-top: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .nav-links.mobile-open {
+            display: flex !important;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .nav-link {
+            color: #374151 !important;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin: 0.25rem 0;
+            justify-content: flex-start;
+        }
+
+        .nav-link:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .nav-link.active {
+            background: rgba(102, 126, 234, 0.2);
+            color: #667eea !important;
+        }
+
+        .nav-actions {
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .welcome-text {
+            color: white;
+            text-align: center;
+        }
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Ensure nav has proper positioning */
+    nav {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const navLinks = document.getElementById('navLinks');
+    
+    if (mobileMenuBtn && navLinks) {
+        // Toggle mobile menu
+        mobileMenuBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            navLinks.classList.toggle('mobile-open');
+            
+            // Change icon based on state
+            const icon = this.querySelector('i');
+            if (navLinks.classList.contains('mobile-open')) {
+                icon.className = 'fas fa-times';
+            } else {
+                icon.className = 'fas fa-bars';
+            }
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function(e) {
+            if (navLinks.classList.contains('mobile-open') && 
+                !navLinks.contains(e.target) && 
+                !mobileMenuBtn.contains(e.target)) {
+                navLinks.classList.remove('mobile-open');
+                mobileMenuBtn.querySelector('i').className = 'fas fa-bars';
+            }
+        });
+
+        // Close menu when clicking on a link (optional)
+        navLinks.addEventListener('click', function(e) {
+            if (e.target.tagName === 'A') {
+                navLinks.classList.remove('mobile-open');
+                mobileMenuBtn.querySelector('i').className = 'fas fa-bars';
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                navLinks.classList.remove('mobile-open');
+                mobileMenuBtn.querySelector('i').className = 'fas fa-bars';
+            }
+        });
+    } else {
+        console.error('Mobile menu elements not found:', {
+            mobileMenuBtn: mobileMenuBtn,
+            navLinks: navLinks
+        });
+    }
+});
+</script>
     <div class="main-container">
         <div class="content-card">
             <!-- Messages Display -->
