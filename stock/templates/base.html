@@ -491,7 +491,7 @@
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
         // Use absolute path and root scope
-        navigator.serviceWorker.register('/serviceworker.js', { scope: '/' })
+        navigator.serviceWorker.register('/static/serviceworker.js', { scope: '/' })
             .then(function(registration) {
                 console.log('SW registered with scope: ', registration.scope);
                 
