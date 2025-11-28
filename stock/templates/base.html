@@ -485,34 +485,69 @@
     </div>
 
     <!-- Service Worker -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('{% static "serviceworker.js" %}')
-                    .then(function(registration) {
-                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                    })
-                    .catch(function(err) {
-                        console.log('ServiceWorker registration failed: ', err);
-                    });
-            });
-        }
-
-        // Add hover effects for better UX
-        document.addEventListener('DOMContentLoaded', function() {
-            const interactiveElements = document.querySelectorAll('.nav-link, .btn, .logout-btn, .login-btn');
-            
-            interactiveElements.forEach(element => {
-                element.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-2px)';
-                });
+// Register service worker with better error handling
+<script>
+// Register service worker with root scope
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        // Use absolute path and root scope
+        navigator.serviceWorker.register('/serviceworker.js', { scope: '/' })
+            .then(function(registration) {
+                console.log('SW registered with scope: ', registration.scope);
                 
-                element.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0)';
-                });
+                // Check if service worker is controlling the page
+                if (navigator.serviceWorker.controller) {
+                    console.log('SW is controlling the page');
+                } else {
+                    console.log('SW not controlling the page - will control after refresh');
+                }
+            })
+            .catch(function(error) {
+                console.log('SW registration failed: ', error);
             });
-        });
-    </script>
+    });
+
+    // Listen for controller changes
+    navigator.serviceWorker.addEventListener('controllerchange', function() {
+        console.log('SW now controlling the page');
+    });
+}
+
+// Global message function
+function showMessage(message, type = 'info') {
+    // Create or use existing message system
+    const alertDiv = document.createElement('div');
+    alertDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10000;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        max-width: 300px;
+    `;
+    
+    const bgColors = {
+        'info': '#3b82f6',
+        'success': '#10b981', 
+        'warning': '#f59e0b',
+        'error': '#ef4444'
+    };
+    
+    alertDiv.style.background = bgColors[type] || bgColors.info;
+    alertDiv.textContent = message;
+    
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
+    }, 5000);
+}
+</script>
     <!-- Add this script to your base.html for collapsible navigation -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {
