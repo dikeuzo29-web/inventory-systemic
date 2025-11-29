@@ -22,11 +22,12 @@ from django.urls import path, include
 from django.shortcuts import render
 from django.views.generic import TemplateView
 from django.views.generic import RedirectView
+import os
+from django.conf import settings
+from django.http import HttpResponse, JsonResponse
 
 def homepage(request):
     return render(request, "stock/homepage.html")
-
-from django.http import JsonResponse
 
 def chart_data(request):
     data = {
@@ -35,21 +36,39 @@ def chart_data(request):
     }
     return JsonResponse(data)
 
+def service_worker(request):
+    try:
+        # Read the service worker file
+        sw_path = os.path.join(settings.BASE_DIR, 'static', 'serviceworker.js')
+        with open(sw_path, 'r') as f:
+            content = f.read()
+        
+        response = HttpResponse(content, content_type='application/javascript')
+        # THIS IS THE KEY: Allow root scope
+        response['Service-Worker-Allowed'] = '/'
+        return response
+    except FileNotFoundError:
+        return HttpResponse('Service Worker not found', status=404)
+
+def manifest_view(request):
+    return render(request, 'pwa/manifest.json', content_type='application/manifest+json')
 
 urlpatterns = [
     path("", homepage, name="home"),
-    path("pwa/manifest.json", RedirectView.as_view(url="/static/pwa/manifest.json")),
-
-    # Public schema APIs (optional — you can also move them into tenant if needed)
+    
+    # PWA routes - ADD THESE
+    path("serviceworker.js", service_worker, name='serviceworker'),
+    path("manifest.json", manifest_view, name='manifest'),
+    path("offline/", TemplateView.as_view(template_name="offline.html"), name="offline"),
+    
+    # Public schema APIs
     path("api/accounts/", include("accounts.urls")),
     path("api/stock/", include("stock.urls")),
     path('api/chart-data/', chart_data, name='chart_data'),
 
-    # PWA + offline support
-    path("offline/", TemplateView.as_view(template_name="offline.html"), name="offline"),
+    # PWA app (keep this if you're using django-pwa)
     path("", include("pwa.urls")),
 
     # Admin site
     path("admin/", admin.site.urls),
 ]
-

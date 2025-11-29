@@ -485,39 +485,76 @@
     </div>
 
     <!-- Service Worker -->
-// Register service worker with better error handling
-<script>
-// Register service worker with root scope
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-        // Use absolute path and root scope
-        navigator.serviceWorker.register('/static/serviceworker.js', { scope: '/' })
-            .then(function(registration) {
-                console.log('SW registered with scope: ', registration.scope);
-                
-                // Check if service worker is controlling the page
-                if (navigator.serviceWorker.controller) {
-                    console.log('SW is controlling the page');
-                } else {
-                    console.log('SW not controlling the page - will control after refresh');
-                }
-            })
-            .catch(function(error) {
-                console.log('SW registration failed: ', error);
-            });
-    });
+<!-- Service Worker Registration & Status Indicator -->
+<div id="offline-status" style="position:fixed; bottom:10px; right:10px; background:#000; color:#fff; padding:10px; border-radius:5px; font-size:12px; z-index:10000;">
+    <div>Status: <span id="status-text">Loading...</span></div>
+</div>
 
-    // Listen for controller changes
-    navigator.serviceWorker.addEventListener('controllerchange', function() {
-        console.log('SW now controlling the page');
+<script>
+// Enhanced service worker registration
+if ('serviceWorker' in navigator) {
+    // First, clear any old service workers
+    navigator.serviceWorker.getRegistrations().then(registrations => {
+        console.log('Clearing', registrations.length, 'old service workers');
+        registrations.forEach(registration => registration.unregister());
+        
+        // Wait a bit, then register new one
+        setTimeout(() => {
+            // Register from root with correct scope
+            navigator.serviceWorker.register('/serviceworker.js', { scope: '/' })
+                .then(registration => {
+                    console.log('✅ Service Worker registered with root scope:', registration);
+                    
+                    // Check if controlling immediately
+                    if (navigator.serviceWorker.controller) {
+                        console.log('✅ Service Worker is controlling the page');
+                        updateStatus('✅ Online + Offline Ready');
+                    } else {
+                        console.log('ℹ️ Service Worker will control after refresh');
+                        updateStatus('✅ Offline mode activated');
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Service Worker registration failed:', error);
+                    updateStatus('❌ Offline mode failed');
+                });
+        }, 500);
     });
+} else {
+    console.log('❌ Service Workers not supported');
+    updateStatus('❌ Browser not supported');
 }
 
-// Global message function
+// Update status display
+function updateStatus(message) {
+    const statusElement = document.getElementById('status-text');
+    if (statusElement) {
+        statusElement.textContent = message;
+        statusElement.style.color = message.includes('✅') ? '#00ff00' : 
+                                   message.includes('❌') ? '#ff0000' : '#ffffff';
+    }
+}
+
+// Network status detection
+window.addEventListener('online', () => {
+    updateStatus('✅ Online + Offline Ready');
+    showMessage('🌐 Back online - syncing data...', 'success');
+});
+
+window.addEventListener('offline', () => {
+    updateStatus('❌ Offline - Using Cache');
+    showMessage('📡 You are offline - using cached data', 'warning');
+});
+
+// Enhanced message function
 function showMessage(message, type = 'info') {
-    // Create or use existing message system
-    const alertDiv = document.createElement('div');
-    alertDiv.style.cssText = `
+    // Remove existing message
+    const existing = document.getElementById('dynamic-message');
+    if (existing) existing.remove();
+
+    const messageDiv = document.createElement('div');
+    messageDiv.id = 'dynamic-message';
+    messageDiv.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
@@ -527,6 +564,7 @@ function showMessage(message, type = 'info') {
         color: white;
         font-weight: 500;
         max-width: 300px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     `;
     
     const bgColors = {
@@ -536,16 +574,24 @@ function showMessage(message, type = 'info') {
         'error': '#ef4444'
     };
     
-    alertDiv.style.background = bgColors[type] || bgColors.info;
-    alertDiv.textContent = message;
+    messageDiv.style.background = bgColors[type] || bgColors.info;
+    messageDiv.textContent = message;
     
-    document.body.appendChild(alertDiv);
+    document.body.appendChild(messageDiv);
     
+    // Auto-remove after 5 seconds
     setTimeout(() => {
-        if (alertDiv.parentNode) {
-            alertDiv.parentNode.removeChild(alertDiv);
+        if (messageDiv.parentNode) {
+            messageDiv.parentNode.removeChild(messageDiv);
         }
     }, 5000);
+}
+
+// Initial status check
+if (navigator.onLine) {
+    updateStatus('✅ Online + Offline Ready');
+} else {
+    updateStatus('❌ Offline - Using Cache');
 }
 </script>
     <!-- Add this script to your base.html for collapsible navigation -->
