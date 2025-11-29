@@ -58,7 +58,7 @@ urlpatterns = [
     
     # PWA routes - ADD THESE
     path("serviceworker.js", service_worker, name='serviceworker'),
-    path("manifest.json", manifest_view, name='manifest'),
+    path('pwa/manifest.json', RedirectView.as_view(url='/static/pwa/manifest.json')),
     path("offline/", TemplateView.as_view(template_name="offline.html"), name="offline"),
     
     # Public schema APIs
