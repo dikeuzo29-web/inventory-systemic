@@ -1,5 +1,5 @@
 // static/serviceworker.js - FIXED CLONE ERRORS
-const CACHE_NAME = 'inventory-app-v7'; // New version
+const CACHE_NAME = 'inventory-app-v8'; // New version
 const API_CACHE_NAME = 'api-cache-v1';
 const OFFLINE_URL = '/offline/';
 const SYNC_QUEUE = 'offline-queue';
@@ -10,9 +10,6 @@ const urlsToCache = [
     '/static/js/dexie.min.js',
     '/static/js/offline_sync.js', 
     '/static/image/itekton-logo.png',
-    '/static/css/main.css',
-    '/static/js/app.js',
-    '/static/css/bootstrap.min.css',
     '/offline/'
 ];
 

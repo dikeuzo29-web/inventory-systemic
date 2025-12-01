@@ -245,14 +245,44 @@ async function syncRestocks() {
 // --- Product Cache ---
 async function cacheProductsForOfflineUsage() {
     try {
-        const response = await fetch('/api/stock/products/');
-        if (!response.ok) return;
-        const products = await response.json();
-        await db.products_cache.clear();
-        await db.products_cache.bulkAdd(products);
-        console.log('[CACHE] Products updated.');
+        // Try different possible endpoints
+        let response;
+        
+        // Try the manage products endpoint first (common in Django)
+        response = await fetch('/api/stock/manage/products/');
+        
+        if (!response.ok) {
+            // Try another common endpoint
+            response = await fetch('/api/products/');
+        }
+        
+        if (!response.ok) {
+            console.warn('[CACHE] No products endpoint found');
+            return;
+        }
+        
+        // Handle different response types
+        const contentType = response.headers.get('content-type');
+        
+        if (contentType && contentType.includes('application/json')) {
+            const products = await response.json();
+            await db.products_cache.clear();
+            
+            // Transform if needed - handle array or object response
+            if (Array.isArray(products)) {
+                await db.products_cache.bulkAdd(products);
+            } else if (products.results) {
+                await db.products_cache.bulkAdd(products.results);
+            } else if (products.products) {
+                await db.products_cache.bulkAdd(products.products);
+            }
+            
+            console.log('[CACHE] Products updated:', await db.products_cache.count());
+        } else {
+            console.warn('[CACHE] Response is not JSON');
+        }
     } catch (error) {
-        console.warn('[CACHE] Product caching failed:', error);
+        console.warn('[CACHE] Product caching failed:', error.message);
     }
 }
 
