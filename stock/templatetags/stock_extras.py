@@ -12,3 +12,11 @@ def querystring(request, **kwargs):
         else:
             query[key] = value
     return query.urlencode()
+
+@register.filter
+def abs(value):
+    try:
+        return abs(float(value))
+    except:
+        return value
+
