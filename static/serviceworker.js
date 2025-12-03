@@ -1,313 +1,64 @@
-// static/serviceworker.js - FIXED CLONE ERRORS
-const CACHE_NAME = 'inventory-app-v8'; // New version
-const API_CACHE_NAME = 'api-cache-v1';
-const OFFLINE_URL = '/offline/';
-const SYNC_QUEUE = 'offline-queue';
-
-// Static assets to cache
-const urlsToCache = [
-    '/',
-    '/static/js/dexie.min.js',
-    '/static/js/offline_sync.js', 
-    '/static/image/itekton-logo.png',
-    '/offline/'
+// serviceworker.js — CLEAN VERSION (No Write Queueing)
+const CACHE_NAME = 'inventory-app-v8';
+const STATIC_ASSETS = [
+    "/",
+    "/offline/",
+    "/static/css/styles.css",
+    "/static/js/offline_sync.js",
+    "/static/js/dexie.min.js",
+    "/static/images/logo.png",
 ];
 
-// Critical API endpoints to pre-cache
-const criticalApis = [
-    '/api/stock/manage/categories/',
-    '/api/stock/manage/products/',
-    '/api/stock/sales/',
-    '/api/stock/restock/',
-    '/api/stock/returns/',
-    '/api/accounts/dashboard/'
-];
-
-self.addEventListener('install', event => {
-    console.log('[ServiceWorker] Install');
+// INSTALL EVENT
+self.addEventListener("install", (event) => {
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(urlsToCache))
-            .then(() => cacheCriticalApiData())
-            .then(() => self.skipWaiting())
-            .catch(err => console.error('[ServiceWorker] Install failed:', err))
-    );
-});
-
-async function cacheCriticalApiData() {
-    try {
-        const apiCache = await caches.open(API_CACHE_NAME);
-        await Promise.all(
-            criticalApis.map(async (apiUrl) => {
-                try {
-                    const response = await fetch(apiUrl);
-                    if (response.ok) {
-                        // CLONE FIX: Clone before using response
-                        await apiCache.put(apiUrl, response.clone());
-                        console.log(`[ServiceWorker] Pre-cached: ${apiUrl}`);
-                    }
-                } catch (error) {
-                    console.warn(`[ServiceWorker] Failed to pre-cache ${apiUrl}`);
-                }
-            })
-        );
-    } catch (error) {
-        console.error('[ServiceWorker] API pre-caching failed:', error);
-    }
-}
-
-self.addEventListener('fetch', event => {
-    const requestUrl = new URL(event.request.url);
-    
-    // Skip browser extensions and non-HTTPs
-    if (requestUrl.protocol === 'chrome-extension:') return;
-
-    // 1. Handle API WRITE operations (POST, PUT, DELETE) - Queue for offline
-    if (requestUrl.pathname.startsWith('/api/') && 
-        ['POST', 'PUT', 'DELETE', 'PATCH'].includes(event.request.method)) {
-        
-        event.respondWith(
-            (async () => {
-                try {
-                    // Try to send the request online
-                    const response = await fetch(event.request);
-                    
-                    if (response.ok) {
-                        console.log(`[ServiceWorker] ${event.request.method} request successful`);
-                        
-                        // Invalidate related caches since data changed
-                        await invalidateRelatedCaches(requestUrl.pathname);
-                    }
-                    
-                    return response;
-                } catch (error) {
-                    // Network failed - queue for later sync
-                    console.log(`[ServiceWorker] Offline ${event.request.method} request, queuing:`, requestUrl.pathname);
-                    
-                    // Store the request in IndexedDB for later sync
-                    await queueOfflineRequest(event.request);
-                    
-                    // Return success response to user (operation queued)
-                    return new Response(
-                        JSON.stringify({ 
-                            status: 'queued',
-                            message: 'Operation queued for sync when online',
-                            queued_at: new Date().toISOString()
-                        }), 
-                        { 
-                            headers: { 
-                                'Content-Type': 'application/json',
-                                'X-Offline-Queued': 'true'
-                            },
-                            status: 202 // Accepted
-                        }
-                    );
-                }
-            })()
-        );
-        return;
-    }
-
-    // 2. API GET requests - Network First (FIXED CLONE)
-    if (requestUrl.pathname.startsWith('/api/') && event.request.method === 'GET') {
-        event.respondWith(
-            (async () => {
-                try {
-                    const networkResponse = await fetch(event.request);
-                    
-                    if (networkResponse.ok) {
-                        // CLONE FIX: Clone immediately before using response
-                        const responseClone = networkResponse.clone();
-                        const apiCache = await caches.open(API_CACHE_NAME);
-                        apiCache.put(event.request, responseClone);
-                    }
-                    return networkResponse;
-                } catch (error) {
-                    console.log('[ServiceWorker] API offline, trying cache');
-                    const cachedResponse = await caches.match(event.request);
-                    
-                    if (cachedResponse) {
-                        return cachedResponse;
-                    }
-                    
-                    return new Response(
-                        JSON.stringify({ 
-                            error: 'offline', 
-                            message: 'You are offline and no cached data is available'
-                        }), 
-                        { 
-                            headers: { 'Content-Type': 'application/json' },
-                            status: 503 
-                        }
-                    );
-                }
-            })()
-        );
-        return;
-    }
-
-    // 3. Static assets - Cache First (FIXED CLONE)
-    if (requestUrl.pathname.startsWith('/static/')) {
-        event.respondWith(
-            caches.match(event.request).then(response => {
-                return response || fetch(event.request).then(networkResponse => {
-                    if (networkResponse.ok) {
-                        // CLONE FIX: Clone immediately before using response
-                        const responseClone = networkResponse.clone();
-                        caches.open(CACHE_NAME).then(cache => {
-                            cache.put(event.request, responseClone);
-                        });
-                    }
-                    return networkResponse;
-                });
-            })
-        );
-        return;
-    }
-
-    // 4. HTML pages - Network First (FIXED CLONE)
-    if (event.request.mode === 'navigate') {
-        event.respondWith(
-            (async () => {
-                try {
-                    const networkResponse = await fetch(event.request);
-                    if (networkResponse.ok) {
-                        // CLONE FIX: Clone immediately before using response
-                        const responseClone = networkResponse.clone();
-                        const cache = await caches.open(CACHE_NAME);
-                        cache.put(event.request, responseClone);
-                    }
-                    return networkResponse;
-                } catch (error) {
-                    const cachedResponse = await caches.match(event.request);
-                    if (cachedResponse) return cachedResponse;
-                    
-                    const offlineResponse = await caches.match(OFFLINE_URL);
-                    return offlineResponse || new Response('Offline - Please check connection');
-                }
-            })()
-        );
-        return;
-    }
-
-    // 5. Default strategy
-    event.respondWith(
-        caches.match(event.request).then(response => {
-            return response || fetch(event.request);
+        caches.open(CACHE_NAME).then((cache) => {
+            return cache.addAll(STATIC_ASSETS);
         })
     );
+    self.skipWaiting();
 });
 
-// Queue offline requests in IndexedDB (FIXED CLONE)
-async function queueOfflineRequest(request) {
-    try {
-        // CLONE FIX: Clone the request before reading body
-        const requestClone = request.clone();
-        const requestData = {
-            url: request.url,
-            method: request.method,
-            headers: Object.fromEntries(request.headers.entries()),
-            body: await requestClone.text(),
-            timestamp: new Date().toISOString(),
-            id: Date.now() + Math.random()
-        };
-
-        // Store in IndexedDB - this assumes you have Dexie setup
-        if (typeof window !== 'undefined' && window.offlineDB) {
-            await window.offlineDB.offlineRequests.add(requestData);
-        } else {
-            // Fallback to localStorage if Dexie not available
-            const queue = JSON.parse(localStorage.getItem(SYNC_QUEUE) || '[]');
-            queue.push(requestData);
-            localStorage.setItem(SYNC_QUEUE, JSON.stringify(queue));
-        }
-        
-        console.log(`[ServiceWorker] Queued ${request.method} request to ${request.url}`);
-    } catch (error) {
-        console.error('[ServiceWorker] Failed to queue request:', error);
-    }
-}
-
-// Invalidate caches when data changes
-async function invalidateRelatedCaches(apiPath) {
-    const apiCache = await caches.open(API_CACHE_NAME);
-    const keys = await apiCache.keys();
-    
-    // Remove cached GET requests that might be affected by this write
-    keys.forEach(request => {
-        if (request.method === 'GET' && 
-            request.url.includes(apiPath.split('/').slice(0, 4).join('/'))) {
-            apiCache.delete(request);
-            console.log(`[ServiceWorker] Invalidated cache: ${request.url}`);
-        }
-    });
-}
-
-// Background sync for queued requests
-self.addEventListener('sync', event => {
-    if (event.tag === 'sync-queue') {
-        console.log('[ServiceWorker] Background sync triggered');
-        event.waitUntil(syncQueuedRequests());
-    }
-});
-
-// Sync all queued requests when back online
-async function syncQueuedRequests() {
-    try {
-        let queuedRequests = [];
-        
-        // Get from IndexedDB
-        if (typeof window !== 'undefined' && window.offlineDB) {
-            queuedRequests = await window.offlineDB.offlineRequests.toArray();
-        } else {
-            // Get from localStorage
-            queuedRequests = JSON.parse(localStorage.getItem(SYNC_QUEUE) || '[]');
-        }
-        
-        console.log(`[ServiceWorker] Syncing ${queuedRequests.length} queued requests`);
-        
-        for (const requestData of queuedRequests) {
-            try {
-                const response = await fetch(requestData.url, {
-                    method: requestData.method,
-                    headers: requestData.headers,
-                    body: requestData.body
-                });
-                
-                if (response.ok) {
-                    // Remove from queue on success
-                    if (typeof window !== 'undefined' && window.offlineDB) {
-                        await window.offlineDB.offlineRequests.delete(requestData.id);
-                    } else {
-                        const queue = JSON.parse(localStorage.getItem(SYNC_QUEUE) || '[]');
-                        const newQueue = queue.filter(req => req.id !== requestData.id);
-                        localStorage.setItem(SYNC_QUEUE, JSON.stringify(newQueue));
-                    }
-                    console.log(`[ServiceWorker] Successfully synced: ${requestData.method} ${requestData.url}`);
-                }
-            } catch (error) {
-                console.error(`[ServiceWorker] Failed to sync: ${requestData.method} ${requestData.url}`, error);
-            }
-        }
-    } catch (error) {
-        console.error('[ServiceWorker] Sync failed:', error);
-    }
-}
-
-self.addEventListener('activate', event => {
+// ACTIVATE EVENT
+self.addEventListener("activate", (event) => {
     event.waitUntil(
-        Promise.all([
-            clients.claim(),
-            caches.keys().then(keys => {
-                return Promise.all(
-                    keys.map(key => {
-                        if (key !== CACHE_NAME && key !== API_CACHE_NAME) {
-                            console.log('[ServiceWorker] Removing old cache:', key);
-                            return caches.delete(key);
-                        }
-                    })
-                );
-            })
-        ])
+        caches.keys().then((keys) =>
+            Promise.all(
+                keys
+                    .filter((key) => key !== CACHE_NAME)
+                    .map((key) => caches.delete(key))
+            )
+        )
+    );
+    self.clients.claim();
+});
+
+// FETCH HANDLER (GET requests ONLY)
+self.addEventListener("fetch", (event) => {
+    const req = event.request;
+
+    // ❌ Never touch POST/PUT/PATCH/DELETE — handled by offline_sync.js
+    if (req.method !== "GET") return;
+
+    event.respondWith(
+        caches.match(req).then((cached) => {
+            if (cached) return cached;
+
+            return fetch(req)
+                .then((response) => {
+                    // Save clone into cache (GET only)
+                    const copy = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(req, copy);
+                    });
+                    return response;
+                })
+                .catch(() => {
+                    // Offline fallback for navigation
+                    if (req.mode === "navigate") {
+                        return caches.match("/offline/");
+                    }
+                });
+        })
     );
 });

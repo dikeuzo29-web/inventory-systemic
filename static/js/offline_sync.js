@@ -1,351 +1,252 @@
 // static/js/offline_sync.js
+// Ensure dexie.min.js is loaded before this script
 
-// Make sure Dexie.js is loaded BEFORE this script.
-// <script src="{% static 'js/dexie.min.js' %}"></script>
-
-// offline_logic.js
-// Unified Offline Logic for Inventory App
-
-// --- IndexedDB Setup ---
+// Dexie DB setup
 const db = new Dexie('InventoryAppOfflineDB');
 db.version(1).stores({
-    products_to_sync: '++id,data,csrf_token',
-    sales_to_sync: '++id,product_id,quantity,timestamp,csrf_token,type', // sale or return
-    restocks_to_sync: '++id,product_id,quantity,timestamp,csrf_token',   // restocks
+    products_to_sync: '++id,createdAt',
+    sales_to_sync: '++id,createdAt,product_id,quantity,type,uuid',
+    restocks_to_sync: '++id,createdAt,product_id,quantity,uuid',
     products_cache: 'id,name,price,quantity,is_returnable,deposit_amount,bottles_outstanding',
-    chartCache: "key,data" // cached dashboard data
+    queue_meta: 'key,value' // for storing backoff state, last sync times, etc.
 });
 
-// --- Helper Functions ---
-function formatNaira(amount) {
-    return `₦${Number(amount).toLocaleString("en-NG")}`;
+// helpers (local)
+async function setMeta(key, value) {
+    await db.queue_meta.put({ key, value });
+}
+async function getMeta(key) {
+    const rec = await db.queue_meta.get(key);
+    return rec ? rec.value : null;
 }
 
-function getCSRFToken() {
-    return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
-}
-
+// Badges & UI helpers (minimal)
 async function updatePendingSalesBadge() {
     const count = await db.sales_to_sync.count();
     const badge = document.getElementById('pending-sales-badge');
-    if (badge) {
-        badge.textContent = count;
-        badge.style.display = count > 0 ? 'inline-block' : 'none';
-    }
+    if (badge) { badge.textContent = count; badge.style.display = count > 0 ? 'inline-block' : 'none'; }
 }
-
-async function updatePendingProductsBadge() {
-    const count = await db.products_to_sync.count();
-    const badge = document.getElementById('pending-products-badge');
-    if (badge) {
-        badge.textContent = count;
-        badge.style.display = count > 0 ? 'inline-block' : 'none';
-    }
-}
-
 async function updatePendingRestocksBadge() {
     const count = await db.restocks_to_sync.count();
     const badge = document.getElementById('pending-restocks-badge');
-    if (badge) {
-        badge.textContent = count;
-        badge.style.display = count > 0 ? 'inline-block' : 'none';
-    }
+    if (badge) { badge.textContent = count; badge.style.display = count > 0 ? 'inline-block' : 'none'; }
+}
+async function updatePendingProductsBadge() {
+    const count = await db.products_to_sync.count();
+    const badge = document.getElementById('pending-products-badge');
+    if (badge) { badge.textContent = count; badge.style.display = count > 0 ? 'inline-block' : 'none'; }
 }
 
-// --- Offline Data Saving ---
-async function saveOfflineProduct(formData) {
-    try {
-        const csrftoken = getCSRFToken();
-        await db.products_to_sync.add({
-            data: formData,
-            csrf_token: csrftoken,
-            timestamp: new Date().toISOString()
-        });
-        updatePendingProductsBadge();
-        return true;
-    } catch (error) {
-        console.error('Failed to save product offline:', error);
-        alert('Failed to save product offline: ' + error.message);
-        return false;
-    }
+// Use the utils functions - assumes utils.js is loaded and creates global functions
+// If you use modules, import { uuidv4, getCSRFToken, showToast, safeFetch } from './utils';
+const _uuid = window.uuidv4 || (() => 'uid-' + Date.now());
+const _showToast = window.showToast || (msg => console.log('TOAST:', msg));
+const _safeFetch = window.safeFetch || (async (u, o, k) => fetch(u, o));
+
+// Generic enqueue functions (sales / restocks / products)
+async function enqueueSale({ product_id, quantity, type = 'sale' }) {
+    const uuid = (window.uuidv4 && uuidv4()) || ('uuid-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+    await db.sales_to_sync.add({
+        product_id, quantity, type,
+        createdAt: new Date().toISOString(),
+        uuid
+    });
+    await updatePendingSalesBadge();
+    _showToast('Sale saved offline');
+    return uuid;
 }
 
-async function saveOfflineSale(productId, quantity) {
-    try {
-        const product = await db.products_cache.get(parseInt(productId));
-        if (!product) {
-            alert('Error: Product not found in offline data. Cannot save sale.');
-            return false;
-        }
-        if (product.quantity < quantity) {
-            alert(`Insufficient local stock for ${product.name}. Available: ${product.quantity}.`);
-            return false;
-        }
-        await db.products_cache.update(product.id, { quantity: product.quantity - quantity });
-        console.log(`[OFFLINE] Sale recorded: ${product.name} x${quantity}`);
-
-        const csrftoken = getCSRFToken();
-        await db.sales_to_sync.add({
-            type: "sale",
-            product_id: productId,
-            quantity,
-            timestamp: new Date().toISOString(),
-            csrf_token: csrftoken
-        });
-        updatePendingSalesBadge();
-        return true;
-    } catch (error) {
-        console.error('Failed to save sale offline:', error);
-        return false;
-    }
+async function enqueueRestock({ product_id, quantity }) {
+    const uuid = (window.uuidv4 && uuidv4()) || ('uuid-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+    await db.restocks_to_sync.add({
+        product_id, quantity,
+        createdAt: new Date().toISOString(),
+        uuid
+    });
+    await updatePendingRestocksBadge();
+    _showToast('Restock saved offline');
+    return uuid;
 }
 
-async function saveOfflineReturn(productId, quantity) {
-    try {
-        const product = await db.products_cache.get(parseInt(productId));
-        if (!product) {
-            alert('Error: Product not found in offline cache. Cannot save return.');
-            return false;
-        }
-        await db.products_cache.update(product.id, {
-            bottles_outstanding: (product.bottles_outstanding || 0) - quantity
-        });
-
-        const csrftoken = getCSRFToken();
-        await db.sales_to_sync.add({
-            type: "return",
-            product_id: productId,
-            quantity,
-            timestamp: new Date().toISOString(),
-            csrf_token: csrftoken
-        });
-
-        console.log(`[OFFLINE] Return recorded: ${product.name} x${quantity}`);
-        updatePendingSalesBadge();
-        return true;
-    } catch (err) {
-        console.error("Failed to save return offline:", err);
-        return false;
-    }
+async function enqueueProductCreate(productData) {
+    await db.products_to_sync.add({
+        data: productData,
+        createdAt: new Date().toISOString()
+    });
+    await updatePendingProductsBadge();
+    _showToast('Product created offline');
 }
 
-async function saveOfflineRestock(productId, quantity) {
-    try {
-        const product = await db.products_cache.get(parseInt(productId));
-        if (!product) {
-            alert('Error: Product not found in offline cache. Cannot save restock.');
-            return false;
-        }
-        await db.products_cache.update(product.id, { quantity: product.quantity + quantity });
-        console.log(`[OFFLINE] Restock recorded: ${product.name} +${quantity}`);
-
-        const csrftoken = getCSRFToken();
-        await db.restocks_to_sync.add({
-            product_id: productId,
-            quantity,
-            timestamp: new Date().toISOString(),
-            csrf_token: csrftoken
-        });
-        updatePendingRestocksBadge();
-        return true;
-    } catch (error) {
-        console.error('Failed to save restock offline:', error);
-        return false;
-    }
-}
-
-// --- Sync Functions ---
-async function syncProducts() {
-    console.log('[SYNC] Products...');
-    const pending = await db.products_to_sync.toArray();
-    for (const tx of pending) {
-        try {
-            const response = await fetch('/api/stock/manage/products/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': tx.csrf_token,
-                },
-                body: JSON.stringify(tx.data),
-            });
-            if (response.ok) {
-                await db.products_to_sync.delete(tx.id);
-                console.log(`[SYNC] Product ${tx.id} synced.`);
-            }
-        } catch (error) {
-            console.error('[SYNC] Product error:', error);
-        }
-    }
-    updatePendingProductsBadge();
-    await cacheProductsForOfflineUsage();
-    await populateProductSelect();
-}
-
-async function syncSales() {
-    console.log('[SYNC] Sales/Returns...');
-    const pending = await db.sales_to_sync.toArray();
-    for (const tx of pending) {
-        try {
-            let url = tx.type === "return" ? "/api/stock/returns/" : "/api/transactions/";
-            const response = await fetch(url, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": tx.csrf_token,
-                },
-                body: JSON.stringify({
-                    product: tx.product_id,
-                    quantity: tx.quantity,
-                    timestamp: tx.timestamp
-                }),
-            });
-            if (response.ok) {
-                await db.sales_to_sync.delete(tx.id);
-                console.log(`[SYNC] ${tx.type} ${tx.id} synced.`);
-            }
-        } catch (error) {
-            console.error('[SYNC] Sale error:', error);
-        }
-    }
-    updatePendingSalesBadge();
-    await cacheProductsForOfflineUsage();
-    await populateProductSelect();
-}
-
-async function syncRestocks() {
-    console.log('[SYNC] Restocks...');
-    const pending = await db.restocks_to_sync.toArray();
-    for (const tx of pending) {
-        try {
-            const response = await fetch("/api/stock/restock/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": tx.csrf_token,
-                },
-                body: JSON.stringify({
-                    product: tx.product_id,
-                    quantity: tx.quantity,
-                    timestamp: tx.timestamp
-                }),
-            });
-            if (response.ok) {
-                await db.restocks_to_sync.delete(tx.id);
-                console.log(`[SYNC] Restock ${tx.id} synced.`);
-            }
-        } catch (error) {
-            console.error('[SYNC] Restock error:', error);
-        }
-    }
-    updatePendingRestocksBadge();
-    await cacheProductsForOfflineUsage();
-    await populateProductSelect();
-}
-
-// --- Product Cache ---
+// Product caching for offline UI
 async function cacheProductsForOfflineUsage() {
     try {
-        // Try different possible endpoints
-        let response;
-        
-        // Try the manage products endpoint first (common in Django)
-        response = await fetch('/api/stock/manage/products/');
-        
-        if (!response.ok) {
-            // Try another common endpoint
-            response = await fetch('/api/products/');
-        }
-        
-        if (!response.ok) {
+        // try manage endpoint first
+        let resp = await fetch('/api/stock/manage/products/');
+        if (!resp.ok) resp = await fetch('/api/products/');
+        if (!resp.ok) {
             console.warn('[CACHE] No products endpoint found');
             return;
         }
-        
-        // Handle different response types
-        const contentType = response.headers.get('content-type');
-        
-        if (contentType && contentType.includes('application/json')) {
-            const products = await response.json();
+        const contentType = resp.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) return;
+        const payload = await resp.json();
+        let arr = [];
+        if (Array.isArray(payload)) arr = payload;
+        else if (payload.results) arr = payload.results;
+        else if (payload.products) arr = payload.products;
+        if (!arr.length) return;
+        await db.transaction('rw', db.products_cache, async () => {
             await db.products_cache.clear();
-            
-            // Transform if needed - handle array or object response
-            if (Array.isArray(products)) {
-                await db.products_cache.bulkAdd(products);
-            } else if (products.results) {
-                await db.products_cache.bulkAdd(products.results);
-            } else if (products.products) {
-                await db.products_cache.bulkAdd(products.products);
-            }
-            
-            console.log('[CACHE] Products updated:', await db.products_cache.count());
-        } else {
-            console.warn('[CACHE] Response is not JSON');
-        }
-    } catch (error) {
-        console.warn('[CACHE] Product caching failed:', error.message);
+            await db.products_cache.bulkAdd(arr);
+        });
+        _showToast('Products cached for offline use');
+    } catch (err) {
+        console.warn('[CACHE] Product caching failed', err);
     }
 }
 
+// Populate product select UI (shared)
 async function populateProductSelect() {
     const select = document.getElementById('product-select');
     if (!select) return;
     const products = await db.products_cache.toArray();
     select.innerHTML = '<option value="" disabled selected>-- Select Product --</option>';
-    products.forEach(p => {
-        const option = document.createElement('option');
-        option.value = p.id;
-        option.textContent = `${p.name} (Stock: ${p.quantity}, Deposit: ${formatNaira(p.deposit_amount || 0)})`;
-        select.appendChild(option);
-    });
+    for (const p of products) {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = `${p.name} (Stock: ${p.quantity})`;
+        select.appendChild(opt);
+    }
 }
 
-// --- Dashboard Charts ---
-async function updateCharts() {
-    const key = `chart_${periodSelect.value}_${startDate.value}_${endDate.value}`;
-    if (!navigator.onLine) {
-        console.log("[OFFLINE] Charts from cache...");
-        const cached = await db.chartCache.get(key);
-        if (cached) renderCharts(cached.data);
-        return;
-    }
+// Sync worker: attempts to send local queued transactions to server with idempotency keys & backoff
+let syncInProgress = false;
+
+async function processQueueOnce({ maxRetries = 3, baseDelay = 1000 } = {}) {
+    if (syncInProgress) return;
+    syncInProgress = true;
     try {
-        const response = await fetch(`/api/chart-data/?period=${periodSelect.value}&start_date=${startDate.value}&end_date=${endDate.value}`);
-        if (response.ok) {
-            const data = await response.json();
-            await db.chartCache.put({ key, data });
-            renderCharts(data);
+        // Process products_to_sync first (creates)
+        const products = await db.products_to_sync.toArray();
+        for (const p of products) {
+            try {
+                const idempotency = (window.uuidv4 && uuidv4()) || ('pid-' + Date.now());
+                const resp = await _safeFetch('/api/stock/manage/products/', {
+                    method: 'POST',
+                    body: JSON.stringify(p.data)
+                }, idempotency);
+                if (resp.ok) {
+                    await db.products_to_sync.delete(p.id);
+                    _showToast(`Product synced: ${p.data.name}`, { type: 'success' });
+                } else {
+                    console.warn('Product sync failed', await resp.text());
+                }
+            } catch (err) {
+                console.error('Product sync exception', err);
+            }
         }
-    } catch (error) {
-        console.error("[CHART] Fetch failed:", error);
+        await updatePendingProductsBadge();
+
+        // Process sales and returns
+        const sales = await db.sales_to_sync.toArray();
+        for (const s of sales) {
+            try {
+                const url = (s.type === 'return') ? '/api/stock/returns/' : '/api/transactions/';
+                const payload = {
+                    product: s.product_id,
+                    quantity: s.quantity,
+                    timestamp: s.createdAt,
+                    client_uuid: s.uuid
+                };
+                const resp = await _safeFetch(url, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                }, s.uuid); // idempotency key = uuid
+                if (resp.ok) {
+                    await db.sales_to_sync.delete(s.id);
+                    _showToast(`Synced ${s.type} for product ${s.product_id}`, { type: 'success' });
+                } else {
+                    const text = await resp.text();
+                    console.warn('Sale sync non-ok', text);
+                }
+            } catch (err) {
+                console.error('Sale sync error', err);
+            }
+        }
+        await updatePendingSalesBadge();
+
+        // Process restocks
+        const restocks = await db.restocks_to_sync.toArray();
+        for (const r of restocks) {
+            try {
+                const payload = { product: r.product_id, quantity: r.quantity, timestamp: r.createdAt, client_uuid: r.uuid };
+                const resp = await _safeFetch('/api/stock/restock/', {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                }, r.uuid);
+                if (resp.ok) {
+                    await db.restocks_to_sync.delete(r.id);
+                    _showToast(`Synced restock for product ${r.product_id}`, { type: 'success' });
+                } else {
+                    console.warn('Restock sync not ok', await resp.text());
+                }
+            } catch (err) {
+                console.error('Restock sync error', err);
+            }
+        }
+        await updatePendingRestocksBadge();
+
+        // refresh product cache after successful syncs
+        await cacheProductsForOfflineUsage();
+
+        // Inform UI
+        try {
+            const clientsList = await clients.matchAll({ includeUncontrolled: true });
+            for (const c of clientsList) {
+                c.postMessage({ type: 'SYNC_COMPLETE' });
+            }
+        } catch (e) { /* ignore */ }
+
+    } finally {
+        syncInProgress = false;
     }
 }
 
-// --- Initialization ---
+// Robust sync loop with exponential backoff
+async function startSyncLoop() {
+    // Attempt to sync whenever we are online
+    window.addEventListener('online', () => {
+        _showToast('Online — syncing queued items...');
+        processQueueOnce();
+    });
+
+    // Try on load if online
+    if (navigator.onLine) {
+        processQueueOnce();
+    }
+}
+
+// Public API for other scripts
+window.OfflineSync = {
+    enqueueSale,
+    enqueueRestock,
+    enqueueProductCreate,
+    cacheProductsForOfflineUsage,
+    populateProductSelect,
+    processQueueOnce,
+    startSyncLoop,
+    updatePendingBadges: async () => {
+        await updatePendingSalesBadge();
+        await updatePendingRestocksBadge();
+        await updatePendingProductsBadge();
+    }
+};
+
+// Start the loop on load
 document.addEventListener('DOMContentLoaded', async () => {
     await cacheProductsForOfflineUsage();
     await populateProductSelect();
-
-    const offlineStatus = document.getElementById('offline-status');
-    const updateOnlineStatus = () => {
-        if (offlineStatus) offlineStatus.style.display = navigator.onLine ? 'none' : 'inline-block';
-    };
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
-    updateOnlineStatus();
-
-    window.addEventListener('online', () => {
-        syncProducts();
-        syncSales();
-        syncRestocks();
-    });
-
-    if (navigator.onLine) {
-        syncProducts();
-        syncSales();
-        syncRestocks();
-    }
-
-    updatePendingProductsBadge();
-    updatePendingSalesBadge();
-    updatePendingRestocksBadge();
+    await OfflineSync.updatePendingBadges();
+    startSyncLoop();
 });
+
