@@ -57,7 +57,6 @@ urlpatterns = [
     path("", homepage, name="home"),
     
     # PWA routes - ADD THESE
-     path("serviceworker.js", RedirectView.as_view(url="/static/serviceworker.js")),
     path('pwa/manifest.json', RedirectView.as_view(url='/static/pwa/manifest.json')),
     path("offline/", TemplateView.as_view(template_name="offline.html"), name="offline"),
     

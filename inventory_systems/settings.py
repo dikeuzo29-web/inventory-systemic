@@ -91,19 +91,24 @@ TENANT_MODEL = "tenants.Client"
 TENANT_DOMAIN_MODEL = "tenants.Domain"
 TENANT_URLCONF = 'inventory_systems.tenant_urls'
 
-# settings.py
-MIDDLEWARE = [   
+MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    "whitenoise.middleware.WhiteNoiseMiddleware",
-    'django_tenants.middleware.TenantSubfolderMiddleware', 
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+
+    # Session must come BEFORE django-tenants
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # Keep early
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+
+    # NOW it's safe to load the tenant resolver
+    'django_tenants.middleware.TenantSubfolderMiddleware',
+
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 
 ROOT_URLCONF = 'inventory_systems.urls'
 TENANT_BASE_URLCONF = "inventory_systems.tenant_urls"
