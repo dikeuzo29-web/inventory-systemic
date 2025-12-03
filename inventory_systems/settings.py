@@ -34,12 +34,11 @@ DEBUG = env.bool("DEBUG", default=False)
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
-    "inventory-sys-ntjc.onrender.com",
+    "https://inventory-systemic.onrender.com",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    f"https://{env('RENDER_EXTERNAL_HOSTNAME','')}",
-    "https://inventory-sys-ntjc.onrender.com",
+    "https://inventory-systemic.onrender.com",
 ]
 
 CSRF_COOKIE_SECURE = True
