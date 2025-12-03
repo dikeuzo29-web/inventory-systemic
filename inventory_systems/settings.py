@@ -34,7 +34,6 @@ DEBUG = env.bool("DEBUG", default=False)
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
-    env("RENDER_EXTERNAL_HOSTNAME", default=""),
     "inventory-sys-ntjc.onrender.com",
 ]
 
