@@ -12,345 +12,220 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
 
-import environ
 import os
 from pathlib import Path
-from environ import Env
+import environ
+import dj_database_url
 
+# ------------------------------------------------------------
+# BASE / ENV
+# ------------------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
+SECRET_KEY = env("DJANGO_SECRET_KEY", default="fallback-secret-key")
+DEBUG = env.bool("DEBUG", default=False)
 
-# SECURITY WARNING: keep the secret key used in production secret!
-
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "fallback-secret-key")
-DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
-
+# ------------------------------------------------------------
+# HOSTS / CSRF (Render + Railway + Local)
+# ------------------------------------------------------------
 ALLOWED_HOSTS = [
-    "web-production-6f92.up.railway.app",
-    "inventory-sys-ntjc.onrender.com",
     "localhost",
-    "127.0.0.1"
+    "127.0.0.1",
+    env("RENDER_EXTERNAL_HOSTNAME", default=""),
+    "inventory-sys-ntjc.onrender.com",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://web-production-6f92.up.railway.app",
+    f"https://{env('RENDER_EXTERNAL_HOSTNAME','')}",
     "https://inventory-sys-ntjc.onrender.com",
 ]
+
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-#Add Render's hostname if it exists
-RENDER_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
-if RENDER_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_HOSTNAME)
-    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_HOSTNAME}")
-
-
-# Application definition
-
-# settings.py
+# ------------------------------------------------------------
+# MULTI-TENANCY (django-tenants)
+# ------------------------------------------------------------
 SHARED_APPS = [
-    'django_tenants',        # MUST be first
-    'tenants',
-    'accounts',              # ✅ Move here (before admin)
-    'stock',
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django.contrib.humanize',
-    'corsheaders',
-    'pwa',
-    
+    "django_tenants",          # MUST be first
+    "tenants",
+    "accounts",                # shared
+    "stock",                   # shared
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django.contrib.humanize",
+    "corsheaders",
+    "pwa",
 ]
 
 TENANT_APPS = [
-    'rest_framework',
-    'rest_framework_simplejwt',
-    'djoser',
-    
-    
+    "rest_framework",
+    "rest_framework_simplejwt",
+    "djoser",
 ]
 
+INSTALLED_APPS = SHARED_APPS + [app for app in TENANT_APPS if app not in SHARED_APPS]
 
-# settings.py
-INSTALLED_APPS = list(SHARED_APPS) + [
-    app for app in TENANT_APPS if app not in SHARED_APPS
-]
-
-# Tenant models
 TENANT_MODEL = "tenants.Client"
 TENANT_DOMAIN_MODEL = "tenants.Domain"
-TENANT_URLCONF = 'inventory_systems.tenant_urls'
-
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-
-    # Session must come BEFORE django-tenants
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
-
-    # NOW it's safe to load the tenant resolver
-    'django_tenants.middleware.TenantSubfolderMiddleware',
-
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
-
-
-ROOT_URLCONF = 'inventory_systems.urls'
+TENANT_URLCONF = "inventory_systems.tenant_urls"
 TENANT_BASE_URLCONF = "inventory_systems.tenant_urls"
-
-
-
 TENANT_SUBFOLDER_PREFIX = "clients"
 
+DATABASE_ROUTERS = ["django_tenants.routers.TenantSyncRouter"]
+
+# ------------------------------------------------------------
+# DATABASE (Neon PostgreSQL)
+# Fixes "cursor already closed"
+# ------------------------------------------------------------
+DATABASES = {
+    "default": dj_database_url.config(
+        default=env("DATABASE_URL"),
+        conn_max_age=60,              # Keep connection alive
+        ssl_require=True,
+    )
+}
+
+# Use django-tenants backend
+DATABASES["default"]["ENGINE"] = "django_tenants.postgresql_backend"
+
+# Connection stabilizers for Neon (prevents cursor drops)
+DATABASES["default"]["OPTIONS"] = {
+    "sslmode": "require",
+    "connect_timeout": 10,
+    "keepalives": 1,
+    "keepalives_idle": 20,
+    "keepalives_interval": 20,
+    "keepalives_count": 5,
+}
+
+# ------------------------------------------------------------
+# MIDDLEWARE (Correct order for django-tenants)
+# ------------------------------------------------------------
+MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+
+    # Session must load BEFORE tenant middleware
+    "django.contrib.sessions.middleware.SessionMiddleware",
+
+    "django.middleware.common.CommonMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+
+    # Tenant middleware here (NOT at the top)
+    "django_tenants.middleware.TenantSubfolderMiddleware",
+
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
+ROOT_URLCONF = "inventory_systems.urls"
+
+# ------------------------------------------------------------
+# TEMPLATES
+# ------------------------------------------------------------
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'inventory_systems.wsgi.application'
+WSGI_APPLICATION = "inventory_systems.wsgi.application"
 
-
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
-
-
-RUNNING_LOCALLY = env.bool("RUNNING_LOCALLY", default=False)
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django_tenants.postgresql_backend',
-#         'NAME': env('DB_NAME', default='postgres'),
-#         'USER': env('DB_USER', default='postgres'),
-#         'PASSWORD': env('DB_PASSWORD', default='postgres'),
-#         'HOST': 'localhost' if RUNNING_LOCALLY else env('DB_HOST', default='db'),
-#         'PORT': env('DB_PORT', default='5432'),
-#     }
-# }
-# settings.py
-
-# # Load the database configuration from the DATABASE_URL environment variable.
-# DATABASES = {
-#     "default": dj_database_url.config(
-#         # Default to a local PostgreSQL connection if DATABASE_URL is not set
-#         default=f"postgresql://{env('DB_USER', default='postgres')}:{env('DB_PASSWORD', default='postgres')}@{env('DB_HOST', default='localhost')}:{env('DB_PORT', default='5432')}/{env('DB_NAME', default='postgres')}",
-#         conn_max_age=600,
-#         ssl_require=not RUNNING_LOCALLY,
-#     )
-# }
-
-# # ❗ IMPORTANT: Override the engine for django-tenants
-# DATABASES["default"]["ENGINE"] = "django_tenants.postgresql_backend"
-
-
-# DATABASE_ROUTERS = ['django_tenants.routers.TenantSyncRouter']  # Ensure this is set for tenant routing
-
-# DATABASES = {
-#     "default": dj_database_url.config(
-#         default=env("DATABASE_URL"),
-#         conn_max_age=600,
-#         ssl_require=not env.bool("RUNNING_LOCALLY", default=True),
-#     )
-# }
-
-# DATABASES["default"]["ENGINE"] = "django_tenants.postgresql_backend"
-
-# Database Configuration - SIMPLIFIED
-import dj_database_url
-import os
-
-DATABASE_ROUTERS = ["django_tenants.routers.TenantSyncRouter"]
-
-DATABASES = {
-    "default": dj_database_url.config(
-        default=os.environ.get("DATABASE_URL"),
-        conn_max_age=600,
-        ssl_require=True,
-    )
-}
-
-# Force django-tenants backend
-DATABASES["default"]["ENGINE"] = "django_tenants.postgresql_backend"
-
-# Ensure SSL mode (Neon requires this)
-DATABASES["default"]["OPTIONS"] = {"sslmode": "require"}
-
-
-
-
-# Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.1/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
-
-
-
-
-
-# settings.py
-TIME_ZONE = 'Africa/Lagos'  # Update to your timezone
-
-USE_I18N = True
-
-USE_TZ = True
-
-
-STATIC_URL = '/static/'
-
-# Where collectstatic will put files
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-# Extra locations (if you have app-level static)
-STATICFILES_DIRS = [BASE_DIR / "static"]
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
-# In production, you'd use collectstatic and a proper web server (Nginx/Apache)
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-AUTH_USER_MODEL = 'accounts.CustomUser'
+# ------------------------------------------------------------
+# AUTH / JWT
+# ------------------------------------------------------------
+AUTH_USER_MODEL = "accounts.CustomUser"
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
     ),
 }
 
 SIMPLE_JWT = {
-    'AUTH_HEADER_TYPES': ('JWT',),
+    "AUTH_HEADER_TYPES": ("JWT",),
 }
 
+LOGIN_URL = "/api/accounts/login/"
+
+# ------------------------------------------------------------
+# STATIC FILES (Render)
+# ------------------------------------------------------------
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# ------------------------------------------------------------
+# CORS
+# ------------------------------------------------------------
 CORS_ALLOW_ALL_ORIGINS = True
 
-# Logging configuration for audit logging
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-        'audit_file': {
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'audit.log'),
-        },
-    },
-    'loggers': {
-        'audit': {
-            'handlers': ['console', 'audit_file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-    },
-}
-
-# Add to settings.py for better error reporting
-import sys
-
-if not DEBUG:
-    LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'handlers': {
-            'console': {
-                'class': 'logging.StreamHandler',
-                'stream': sys.stdout,
-            },
-        },
-        'root': {
-            'handlers': ['console'],
-            'level': 'INFO',
-        },
-    }
-
-# inventory_systems/settings.py
-
-# PWA Settings
-PWA_APP_NAME = 'Inventory App' # This is the name displayed on the home screen
+# ------------------------------------------------------------
+# PWA
+# ------------------------------------------------------------
+PWA_APP_NAME = "Inventory App"
 PWA_APP_DESCRIPTION = "Offline-enabled Inventory Management System"
-PWA_APP_THEME_COLOR = '#000000' # Or your desired theme color (e.g., Spotify dark green #1DB954)
-PWA_APP_BACKGROUND_COLOR = '#ffffff' # Or a dark color for a dark theme (e.g., #121212)
-PWA_APP_DISPLAY = 'standalone' # Makes it open as a standalone app, without browser UI
-PWA_APP_SCOPE = '/'
-PWA_APP_ORIENTATION = 'portrait' # or 'landscape', 'any'
-PWA_APP_START_URL = '/' # The URL your app opens to
+PWA_APP_THEME_COLOR = "#000000"
+PWA_APP_BACKGROUND_COLOR = "#ffffff"
+PWA_APP_DISPLAY = "standalone"
+PWA_APP_SCOPE = "/"
+PWA_APP_START_URL = "/"
+PWA_APP_ORIENTATION = "portrait"
 PWA_APP_ICONS = [
     {
-        'src': '/static/images/my_app_icon.jpg', # Path to your icon
-        'sizes': '512x512'
+        "src": "/static/images/my_app_icon.jpg",
+        "sizes": "512x512",
     }
 ]
-# You can add more icon sizes for better compatibility across devices
-# PWA_APP_ICONS.append({'src': '/static/images/my_app_icon_192.png', 'sizes': '192x192'})
-# PWA_APP_ICONS.append({'src': '/static/images/my_app_icon_144.png', 'sizes': '144x144'})
-# PWA_APP_ICONS.append({'src': '/static/images/my_app_icon_72.png', 'sizes': '72x72'})
 
-# Important: Point to your service worker
-import os
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static', 'serviceworker.js')
+PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, "static", "serviceworker.js")
 
-# Add (or update) this line:
-LOGIN_URL = '/api/accounts/login/'
+# ------------------------------------------------------------
+# TIMEZONE
+# ------------------------------------------------------------
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = "Africa/Lagos"
+USE_I18N = True
+USE_TZ = True
+
+# ------------------------------------------------------------
+# LOGGING (Render stdout)
+# ------------------------------------------------------------
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "root": {"handlers": ["console"], "level": "INFO"},
+}
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
 
 
