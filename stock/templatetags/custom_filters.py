@@ -22,3 +22,10 @@ def aggregate_sum(queryset, field_name):
     Example: sale.items.all|aggregate_sum:'subtotal'
     """
     return queryset.aggregate(total=Sum(field_name))['total'] or 0
+
+@register.filter
+def abs(value):
+    try:
+        return abs(float(value))
+    except:
+        return value
