@@ -34,7 +34,7 @@ DEBUG = env.bool("DEBUG", default=False)
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
-    "https://inventory-systemic.onrender.com",
+    "inventory-systemic.onrender.com",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
