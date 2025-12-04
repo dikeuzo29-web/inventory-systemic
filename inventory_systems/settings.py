@@ -61,7 +61,7 @@ SHARED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.humanize",
     "corsheaders",
-    "pwa",
+    # "pwa",
 ]
 
 TENANT_APPS = [
@@ -176,7 +176,8 @@ LOGIN_URL = "/api/accounts/login/"
 # ------------------------------------------------------------
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_DIRS = [BASE_DIR / "static",
+                    BASE_DIR / "static/frontend",]
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
@@ -184,28 +185,6 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # CORS
 # ------------------------------------------------------------
 CORS_ALLOW_ALL_ORIGINS = True
-
-# ------------------------------------------------------------
-# PWA
-# ------------------------------------------------------------
-PWA_APP_NAME = "Inventory App"
-PWA_APP_DESCRIPTION = "Offline-enabled Inventory Management System"
-PWA_APP_THEME_COLOR = "#000000"
-PWA_APP_BACKGROUND_COLOR = "#ffffff"
-PWA_APP_DISPLAY = "standalone"
-PWA_APP_SCOPE = "/"
-PWA_APP_START_URL = "/"
-PWA_APP_ORIENTATION = "portrait"
-PWA_APP_ICONS = [
-    {
-        "src": "/static/images/my_app_icon.jpg",
-        "sizes": "512x512",
-    }
-]
-
-PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, "static", "serviceworker.js")
-
-# ------------------------------------------------------------
 # TIMEZONE
 # ------------------------------------------------------------
 LANGUAGE_CODE = "en-us"

@@ -1,5 +1,4 @@
 {% load static %}
-{% load pwa %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -8,15 +7,14 @@
     <title>{% block title %}InventoryPro - Smart Stock Management{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- Progressive Web App -->
-    <link rel="manifest" href="/static/pwa/manifest.json">
+    <link rel="manifest" href="{% static 'frontend/manifest.webmanifest' %}">
+    
+    <script type="module" src="{% static 'frontend/assets/index.js' %}"></script> 
+    <link rel="stylesheet" href="{% static 'frontend/assets/index.css' %}">
+    
     <link rel="icon" href="{% static 'favicon.ico' %}" />
-    <script src="{% static 'js/dexie.min.js' %}"></script>
-    <!-- Your Offline Sync Logic -->
-    <script src="{% static 'js/offline_sync.js' %}"></script>
     <script src="https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js"></script>
 
-    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
@@ -492,111 +490,15 @@
     <div>Status: <span id="status-text">Loading...</span></div>
 </div>
 
-<script>
-// Enhanced service worker registration
-if ('serviceWorker' in navigator) {
-    // First, clear any old service workers
-    navigator.serviceWorker.getRegistrations().then(registrations => {
-        console.log('Clearing', registrations.length, 'old service workers');
-        registrations.forEach(registration => registration.unregister());
-        
-        // Wait a bit, then register new one
-        setTimeout(() => {
-            // Register from root with correct scope
-            navigator.serviceWorker.register('/serviceworker.js', { scope: '/' })
-                .then(registration => {
-                    console.log('✅ Service Worker registered with root scope:', registration);
-                    
-                    // Check if controlling immediately
-                    if (navigator.serviceWorker.controller) {
-                        console.log('✅ Service Worker is controlling the page');
-                        updateStatus('✅ Online + Offline Ready');
-                    } else {
-                        console.log('ℹ️ Service Worker will control after refresh');
-                        updateStatus('✅ Offline mode activated');
-                    }
-                })
-                .catch(error => {
-                    console.error('❌ Service Worker registration failed:', error);
-                    updateStatus('❌ Offline mode failed');
-                });
-        }, 500);
-    });
-} else {
-    console.log('❌ Service Workers not supported');
-    updateStatus('❌ Browser not supported');
-}
+<script type="module">
+        import { Workbox } from 'workbox-window';
 
-// Update status display
-function updateStatus(message) {
-    const statusElement = document.getElementById('status-text');
-    if (statusElement) {
-        statusElement.textContent = message;
-        statusElement.style.color = message.includes('✅') ? '#00ff00' : 
-                                   message.includes('❌') ? '#ff0000' : '#ffffff';
-    }
-}
-
-// Network status detection
-window.addEventListener('online', () => {
-    updateStatus('✅ Online + Offline Ready');
-    showMessage('🌐 Back online - syncing data...', 'success');
-});
-
-window.addEventListener('offline', () => {
-    updateStatus('❌ Offline - Using Cache');
-    showMessage('📡 You are offline - using cached data', 'warning');
-});
-
-// Enhanced message function
-function showMessage(message, type = 'info') {
-    // Remove existing message
-    const existing = document.getElementById('dynamic-message');
-    if (existing) existing.remove();
-
-    const messageDiv = document.createElement('div');
-    messageDiv.id = 'dynamic-message';
-    messageDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 10000;
-        padding: 1rem 1.5rem;
-        border-radius: 8px;
-        color: white;
-        font-weight: 500;
-        max-width: 300px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    `;
-    
-    const bgColors = {
-        'info': '#3b82f6',
-        'success': '#10b981', 
-        'warning': '#f59e0b',
-        'error': '#ef4444'
-    };
-    
-    messageDiv.style.background = bgColors[type] || bgColors.info;
-    messageDiv.textContent = message;
-    
-    document.body.appendChild(messageDiv);
-    
-    // Auto-remove after 5 seconds
-    setTimeout(() => {
-        if (messageDiv.parentNode) {
-            messageDiv.parentNode.removeChild(messageDiv);
+        if ('serviceWorker' in navigator) {
+            // The Service Worker is served directly from the static/frontend/sw.js path
+            const wb = new Workbox('{% static "frontend/sw.js" %}');
+            wb.register();
         }
-    }, 5000);
-}
-
-// Initial status check
-if (navigator.onLine) {
-    updateStatus('✅ Online + Offline Ready');
-} else {
-    updateStatus('❌ Offline - Using Cache');
-}
-</script>
-    <!-- Add this script to your base.html for collapsible navigation -->
+    </script>    <!-- Add this script to your base.html for collapsible navigation -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         const mobileMenuBtn = document.createElement('button');
@@ -667,6 +569,17 @@ if (navigator.onLine) {
             }
         });
     });
+    function updateOnlineStatus() {
+            const statusDiv = document.getElementById('offline-status');
+            if (!navigator.onLine) {
+                statusDiv.style.display = 'block';
+            } else {
+                statusDiv.style.display = 'none';
+            }
+        }
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus();
     </script>
 
     {% block extra_scripts %}
