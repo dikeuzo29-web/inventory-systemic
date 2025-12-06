@@ -21,34 +21,19 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --primary-color: #667eea;
-            --primary-dark: #5a67d8;
-            --secondary-color: #764ba2;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --error-color: #ef4444;
-            --info-color: #3b82f6;
             --white: #ffffff;
-            --gray-50: #f8fafc;
             --gray-100: #f1f5f9;
             --gray-200: #e2e8f0;
-            --gray-300: #cbd5e1;
             --gray-600: #475569;
-            --gray-700: #334155;
             --gray-800: #1e293b;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             --glass-bg: rgba(255, 255, 255, 0.1);
             --glass-border: rgba(255, 255, 255, 0.2);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
         body {
@@ -57,6 +42,7 @@
             min-height: 100vh;
             color: var(--gray-800);
             line-height: 1.6;
+            display: block !important; 
         }
 
         /* Navigation */
@@ -70,6 +56,7 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 1rem;
+            position: relative; /* Essential for mobile menu positioning */
         }
 
         .nav-brand {
@@ -80,20 +67,10 @@
             color: white;
             font-weight: 600;
             font-size: 1.25rem;
+            z-index: 1001; /* Ensure brand stays on top */
         }
 
-        .nav-brand img {
-            border-radius: 8px;
-        }
-
-        .sales-container {
-            width: 100%;
-            max-width: 1400px;
-            margin: 0 auto !important;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-        }
-
+        .nav-brand img { border-radius: 8px; }
 
         .nav-links {
             display: flex;
@@ -124,10 +101,6 @@
             font-weight: 600;
         }
 
-        .nav-link i {
-            font-size: 1.1em;
-        }
-
         .nav-actions {
             display: flex;
             align-items: center;
@@ -135,14 +108,7 @@
             color: white;
         }
 
-        .welcome-text {
-            font-weight: 500;
-        }
-
-        .logout-btn {
-            background: rgba(239, 68, 68, 0.2);
-            color: white;
-            border: 1px solid rgba(239, 68, 68, 0.3);
+        .logout-btn, .login-btn {
             padding: 0.5rem 1rem;
             border-radius: 8px;
             cursor: pointer;
@@ -152,34 +118,30 @@
             gap: 0.5rem;
             transition: all 0.3s ease;
             font-weight: 500;
-        }
-
-        .logout-btn:hover {
-            background: rgba(239, 68, 68, 0.3);
-            transform: translateY(-1px);
-        }
-
-        .login-btn {
-            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
             color: white;
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.3s ease;
-            font-weight: 500;
+        }
+        
+        .logout-btn:hover, .login-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
 
-        .login-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-1px);
+        /* Mobile Menu Button - Hidden on Desktop */
+        .mobile-menu-btn {
+            display: none;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.2rem;
         }
 
         /* Main Container */
         .main-container {
-             width: 100%;
+            width: 100%;
             max-width: 1200px;
             margin: 2rem auto;
             padding: 0 1rem;
@@ -191,213 +153,57 @@
             padding: 2rem;
             box-shadow: var(--shadow-lg);
             margin-bottom: 2rem;
+            overflow: hidden; 
         }
 
-        .page-header {
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid var(--gray-100);
-        }
+        .messages-container { margin-bottom: 2rem; }
+        .alert { padding: 1rem 1.5rem; border-radius: 12px; margin-bottom: 1rem; font-weight: 500; }
+        .alert-info { background: #eff6ff; color: #1e40af; border: 1px solid #dbeafe; }
 
-        .page-title {
-            font-size: 1.875rem;
-            font-weight: 700;
-            color: var(--gray-800);
-            margin-bottom: 0.5rem;
-        }
-
-        .page-subtitle {
-            color: var(--gray-600);
-            font-size: 1.125rem;
-        }
-
-        /* Forms */
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: var(--gray-700);
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 2px solid var(--gray-200);
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: var(--white);
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            text-decoration: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary {
-            background: var(--primary-gradient);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .btn-success {
-            background: var(--success-color);
-            color: white;
-        }
-
-        .btn-danger {
-            background: var(--error-color);
-            color: white;
-        }
-
-        /* Tables */
-        .table-responsive {
-            overflow-x: auto;
-            border-radius: 12px;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-            background: var(--white);
-        }
-
-        .table th {
-            background: var(--gray-50);
-            padding: 1rem;
-            text-align: left;
-            font-weight: 600;
-            color: var(--gray-700);
-            border-bottom: 2px solid var(--gray-200);
-        }
-
-        .table td {
-            padding: 1rem;
-            border-bottom: 1px solid var(--gray-200);
-        }
-
-        .table tbody tr:hover {
-            background: var(--gray-50);
-        }
-
-        .table tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        /* Messages */
-        .messages-container {
-            margin-bottom: 2rem;
-        }
-
-        .alert {
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            margin-bottom: 1rem;
-            font-weight: 500;
-        }
-
-        .alert-success {
-            background: #f0fdf4;
-            color: #166534;
-            border: 1px solid #bbf7d0;
-        }
-
-        .alert-error {
-            background: #fef2f2;
-            color: #991b1b;
-            border: 1px solid #fecaca;
-        }
-
-        .alert-warning {
-            background: #fffbeb;
-            color: #92400e;
-            border: 1px solid #fed7aa;
-        }
-
-        .alert-info {
-            background: #eff6ff;
-            color: #1e40af;
-            border: 1px solid #dbeafe;
-        }
-
-        /* Mobile Responsive */
+        /* --- MOBILE RESPONSIVE STYLES --- */
         @media (max-width: 768px) {
-            nav {
-                padding: 1rem;
-                flex-direction: column;
-                align-items: stretch;
+            .mobile-menu-btn {
+                display: block; /* Show button on mobile */
             }
 
+            /* Hide links by default on mobile */
             .nav-links {
+                display: none; 
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: rgba(255, 255, 255, 0.98);
+                backdrop-filter: blur(10px);
                 flex-direction: column;
-                gap: 0.5rem;
+                padding: 1rem;
+                border-bottom-left-radius: 12px;
+                border-bottom-right-radius: 12px;
+                box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+                z-index: 1000; /* Force it on top of everything */
+            }
+
+            /* When JavaScript adds the 'mobile-open' class, show flex */
+            .nav-links.mobile-open {
+                display: flex;
             }
 
             .nav-link {
-                justify-content: flex-start;
+                width: 100%; /* Full width links */
+                color: var(--gray-800); /* Dark text for white background */
+                padding: 0.75rem;
+            }
+
+            .nav-link:hover {
+                background: var(--gray-100);
             }
 
             .nav-actions {
-                justify-content: center;
-                margin-top: 1rem;
-                padding-top: 1rem;
-                border-top: 1px solid var(--glass-border);
+                display: none; /* Optionally hide top actions or move them into menu if desired */
             }
-
-            .main-container {
-                margin: 1rem auto;
-                padding: 0 0.5rem;
-            }
-
-            .content-card {
-                padding: 1.5rem;
-                border-radius: 12px;
-            }
-
-            .page-title {
-                font-size: 1.5rem;
-            }
-
-            .table th,
-            .table td {
-                padding: 0.75rem 0.5rem;
-                font-size: 0.875rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .content-card {
-                padding: 1rem;
-            }
-
-            .btn {
-                width: 100%;
-                justify-content: center;
-            }
+            
+            /* If you want actions inside the menu, you'd need to restructure HTML slightly, 
+               but for now let's keep the layout simple */
         }
     </style>
 </head>
@@ -405,62 +211,67 @@
 <body>
     <nav>
         <a href="{% url 'accounts:dashboard' %}" class="nav-brand">
-            <img src="{% static 'image/itekton-logo.jpg' %}" alt="InventoryPro Logo" height="35">
+            <img src="{% static 'image/itekton-logo..png' %}" alt="InventoryPro Logo" height="35">
             <span>InventoryPro</span>
         </a>
 
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i class="fas fa-bars"></i>
+        </button>
+
         {% if user.is_authenticated %}
-        <div class="nav-links">
+        <div class="nav-links" id="navLinks">
             <a href="{% url 'accounts:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                <i class="fas fa-chart-line"></i>
-                Dashboard
+                <i class="fas fa-chart-line"></i> Dashboard
             </a>
             
             {% if user.role == 'manager' %}
             <a href="{% url 'manage_categories' %}" class="nav-link {% if request.resolver_match.url_name == 'manage_categories' %}active{% endif %}">
-                <i class="fas fa-tags"></i>
-                Categories
+                <i class="fas fa-tags"></i> Categories
             </a>
             <a href="{% url 'manage_products' %}" class="nav-link {% if request.resolver_match.url_name == 'manage_products' %}active{% endif %}">
-                <i class="fas fa-boxes"></i>
-                Products
+                <i class="fas fa-boxes"></i> Products
             </a>
             {% endif %}
             
             {% if user.role == 'cashier' or user.role == 'manager' %}
             <a href="/api/stock/sales/" class="nav-link">
-                <i class="fas fa-shopping-cart"></i>
-                Sales
+                <i class="fas fa-shopping-cart"></i> Sales
             </a>
             <a href="{% url 'manage_bottle_returns' %}" class="nav-link">
-                <i class="fas fa-recycle"></i>
-                Returns
+                <i class="fas fa-recycle"></i> Returns
             </a>
             {% endif %}
             
             {% if user.role == 'manager' %}
             <a href="/api/stock/restock/" class="nav-link">
-                <i class="fas fa-truck"></i>
-                Restock
+                <i class="fas fa-truck"></i> Restock
             </a>
             {% endif %}
+
+            <div class="mobile-only-actions" style="width: 100%; border-top: 1px solid #eee; margin-top: 0.5rem; padding-top: 0.5rem;">
+                <form method="post" action="{% url 'accounts:logout' %}" style="width: 100%;">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link" style="background:none; border:none; cursor:pointer; font-size:1rem; font-weight:500;">
+                        <i class="fas fa-sign-out-alt" style="color: #ef4444;"></i> <span style="color: #ef4444;">Logout</span>
+                    </button>
+                </form>
+             </div>
         </div>
         {% endif %}
 
         <div class="nav-actions">
             {% if user.is_authenticated %}
-            <span class="welcome-text">Welcome, <strong>{{ user.username }}</strong></span>
-            <form method="post" action="{% url 'accounts:logout' %}" style="display: inline;">
+            <span class="welcome-text" style="display: none;">Welcome, {{ user.username }}</span>
+            <form method="post" action="{% url 'accounts:logout' %}">
                 {% csrf_token %}
                 <button type="submit" class="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    Logout
+                    <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
             </form>
             {% else %}
             <a href="{% url 'accounts:login' %}" class="login-btn">
-                <i class="fas fa-sign-in-alt"></i>
-                Login
+                <i class="fas fa-sign-in-alt"></i> Login
             </a>
             {% endif %}
         </div>
@@ -468,7 +279,6 @@
 
     <div class="main-container">
         <div class="content-card">
-            <!-- Messages Display -->
             {% if messages %}
             <div class="messages-container">
                 {% for message in messages %}
@@ -479,7 +289,6 @@
             </div>
             {% endif %}
 
-            <!-- Page Header -->
             {% block page_header %}
             <div class="page-header">
                 <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
@@ -487,116 +296,65 @@
             </div>
             {% endblock %}
 
-            <!-- Main Content -->
             {% block content %}
-            <!-- Content from child templates will go here -->
             {% endblock %}
+
+            <div id="root"></div>
         </div>
     </div>
 
-    <!-- Service Worker -->
-<!-- Service Worker Registration & Status Indicator -->
-<div id="offline-status" style="position:fixed; bottom:10px; right:10px; background:#000; color:#fff; padding:10px; border-radius:5px; font-size:12px; z-index:10000;">
-    <div>Status: <span id="status-text">Loading...</span></div>
-</div>
+    <div id="offline-status" style="display:none; position:fixed; bottom:10px; right:10px; background:#000; color:#fff; padding:10px; border-radius:5px; font-size:12px; z-index:10000;">
+        <div>Status: <span id="status-text">Offline</span></div>
+    </div>
 
-<script type="module">
-        import { Workbox } from 'workbox-window';
-
-        if ('serviceWorker' in navigator) {
-            // The Service Worker is served directly from the static/frontend/sw.js path
-            const wb = new Workbox('{% static "frontend/sw.js" %}');
-            wb.register();
-        }
-    </script>    <!-- Add this script to your base.html for collapsible navigation -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const mobileMenuBtn = document.createElement('button');
-        mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
-        mobileMenuBtn.style.background = 'rgba(255,255,255,0.2)';
-        mobileMenuBtn.style.border = 'none';
-        mobileMenuBtn.style.color = 'white';
-        mobileMenuBtn.style.padding = '0.5rem';
-        mobileMenuBtn.style.borderRadius = '6px';
-        mobileMenuBtn.style.cursor = 'pointer';
-        mobileMenuBtn.style.display = 'none';
-        mobileMenuBtn.id = 'mobileMenuBtn';
+        // Simplified Mobile Menu Logic
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const navLinks = document.getElementById('navLinks');
 
-        // Insert mobile menu button
-        const nav = document.querySelector('nav');
-        nav.style.position = 'relative';
-        nav.insertBefore(mobileMenuBtn, nav.querySelector('.nav-links'));
+        if (mobileMenuBtn && navLinks) {
+            mobileMenuBtn.addEventListener('click', function() {
+                // Simply toggle the CSS class
+                navLinks.classList.toggle('mobile-open');
+                
+                // Toggle icon
+                const icon = mobileMenuBtn.querySelector('i');
+                if (navLinks.classList.contains('mobile-open')) {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-times');
+                } else {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                }
+            });
 
-        // Toggle mobile menu
-        mobileMenuBtn.addEventListener('click', function() {
-            const navLinks = document.querySelector('.nav-links');
-            navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
-        });
-
-        // Handle responsive behavior
-        function handleResponsive() {
-            const navLinks = document.querySelector('.nav-links');
-            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-            
-            if (window.innerWidth <= 768) {
-                mobileMenuBtn.style.display = 'block';
-                navLinks.style.display = 'none';
-                navLinks.style.flexDirection = 'column';
-                navLinks.style.position = 'absolute';
-                navLinks.style.top = '100%';
-                navLinks.style.left = '0';
-                navLinks.style.right = '0';
-                navLinks.style.background = 'rgba(255,255,255,0.95)';
-                navLinks.style.backdropFilter = 'blur(10px)';
-                navLinks.style.padding = '1rem';
-                navLinks.style.borderRadius = '0 0 12px 12px';
-                navLinks.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
-                navLinks.style.zIndex = '1000';
-            } else {
-                mobileMenuBtn.style.display = 'none';
-                navLinks.style.display = 'flex';
-                navLinks.style.flexDirection = 'row';
-                navLinks.style.position = 'static';
-                navLinks.style.background = 'none';
-                navLinks.style.padding = '0';
-            }
+            // Close menu when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!navLinks.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+                    navLinks.classList.remove('mobile-open');
+                    const icon = mobileMenuBtn.querySelector('i');
+                    if(icon) {
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    }
+                }
+            });
         }
 
-        // Initial call and resize listener
-        handleResponsive();
-        window.addEventListener('resize', handleResponsive);
-
-        // Close mobile menu when clicking outside
-        document.addEventListener('click', function(e) {
-            const navLinks = document.querySelector('.nav-links');
-            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-            
-            if (window.innerWidth <= 768 && 
-                !navLinks.contains(e.target) && 
-                !mobileMenuBtn.contains(e.target) &&
-                navLinks.style.display === 'flex') {
-                navLinks.style.display = 'none';
-            }
-        });
-    });
-    function updateOnlineStatus() {
+        // Offline Status
+        function updateOnlineStatus() {
             const statusDiv = document.getElementById('offline-status');
-            if (!navigator.onLine) {
-                statusDiv.style.display = 'block';
-            } else {
-                statusDiv.style.display = 'none';
-            }
+            if (!statusDiv) return;
+            statusDiv.style.display = navigator.onLine ? 'none' : 'block';
         }
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
         updateOnlineStatus();
+    });
     </script>
 
     {% block extra_scripts %}
-    <!-- Extra scripts from child templates -->
     {% endblock %}
-
-    
-
 </body>
 </html>
