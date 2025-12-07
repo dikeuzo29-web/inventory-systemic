@@ -1,34 +1,31 @@
 /* global workbox */
 import { precacheAndRoute } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
-import { NetworkFirst, NetworkOnly } from 'workbox-strategies';
-import { BackgroundSyncQueue } from 'workbox-background-sync';
+import { NetworkFirst } from 'workbox-strategies';
+import { Queue } from 'workbox-background-sync';
 
 // Precache manifest injected by vite-plugin-pwa
 precacheAndRoute(self.__WB_MANIFEST || []);
 
-// --- 1. Runtime Caching for GET Requests (APIs) ---
-// Use NetworkFirst for API reads to get fresh data but fall back to cache if offline
+// Basic runtime caching for API GET requests (adjust patterns as needed)
 registerRoute(
-  ({ url, request }) => url.pathname.startsWith('/api/') && request.method === 'GET',
+  ({ url }) => url.pathname.startsWith('/api/'),
   new NetworkFirst({
-    cacheName: 'api-read-cache',
+    cacheName: 'api-cache',
     networkTimeoutSeconds: 10,
-  })
+  }),
+  'GET'
 );
 
-// --- 2. Background Sync for POST Requests (Transactions) ---
-const bgQueue = new BackgroundSyncQueue('post-requests-queue', {
-  // Optional custom logic when sync event triggers
+// Background queue for offline POST requests to API
+const bgQueue = new Queue('post-requests-queue', {
   onSync: async ({ queue }) => {
     let entry;
-    while ((entry = await queue.shiftEntry())) {
+    while ((entry = await queue.shiftRequest())) {
       try {
-        const response = await fetch(entry.request);
-        // You might want to notify the user/app that a sync occurred
-        console.log(`Synced request: ${entry.request.url}`, response.status);
+        await fetch(entry.request);
       } catch (err) {
-        // If fetch fails again (e.g., temporary network drop), re-queue for next sync
+        // re-queue and throw to retry later
         await queue.unshiftEntry(entry);
         throw err;
       }
@@ -36,17 +33,15 @@ const bgQueue = new BackgroundSyncQueue('post-requests-queue', {
   },
 });
 
-// Intercept all POST requests to /api/ and use NetworkOnly
-// If the request fails (due to being offline), put it into the background queue.
+// Intercept POSTs and use NetworkOnly with background queue plugin
 registerRoute(
-  ({ request, url }) => request.method === 'POST' && url.pathname.startsWith('/api/'),
-  new NetworkOnly({
+  ({ request }) => request.method === 'POST' && new URL(request.url).pathname.startsWith('/api/'),
+  new workbox.strategies.NetworkOnly({
     plugins: [
       {
-        // fetchDidFail is triggered when the request fails (e.g., browser offline)
         fetchDidFail: async ({ request }) => {
-          await bgQueue.pushRequest(request);
-          // Optional: send a message back to the client UI (App.jsx)
+          // If offline or fetch fails, put request into queue
+          await bgQueue.pushRequest({ request });
         }
       }
     ],
@@ -54,6 +49,10 @@ registerRoute(
   'POST'
 );
 
-// Optional: Force activation immediately
-self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', () => self.clients.claim());
+// Optional: offline fallback page
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+});
+self.addEventListener('activate', (event) => {
+  clients.claim();
+});

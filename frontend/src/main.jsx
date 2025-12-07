@@ -1,22 +1,28 @@
 // frontend/src/main.jsx
 
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
-// 1. Import Workbox
-import { Workbox } from 'workbox-window'
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App';
+import './style.css';
+import { Workbox } from 'workbox-window';
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+const root = createRoot(document.getElementById('root'));
+root.render(<App />);
 
-// 2. Register Service Worker
+// service worker registration using workbox-window
 if ('serviceWorker' in navigator) {
-  // We use the direct path because this runs in the browser
-  const wb = new Workbox('/static/frontend/sw.js');
+  const wb = new Workbox('/static/sw.js');
+  wb.addEventListener('controlling', () => {
+    // When a new SW takes control
+    window.location.reload();
+  });
+
+   // Detect new versions waiting to activate
+  wb.addEventListener('waiting', () => {
+    console.log('A new service worker is waiting to activate.');
+    wb.messageSW({ type: 'SKIP_WAITING' });
+  });
 
   wb.register();
 }
+

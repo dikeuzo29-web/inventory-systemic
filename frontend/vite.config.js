@@ -1,62 +1,42 @@
-// frontend/vite.config.js
-
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
+import path from 'path';
 
 export default defineConfig({
-  // Configure the base path for static assets, essential for Django serving
-  // It tells Vite the files will be served from /static/frontend/
-  base: '/static/frontend/', 
-
+  base: '/static/frontend/',        // important for Django static path
   plugins: [
-    react(), // Required for React projects
+    react(),
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: 'auto',
-      
-      // Configuration for the Service Worker (sw.js)
+      injectRegister: false, // we'll control registration from our React code
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
-        // The sw.js file must be located where Django can serve it
-        swDest: '../static/frontend/sw.js',
+        globPatterns: ['**/*.{js,css,html,png,jpg,svg,json}'],
       },
-
-      // Configuration for the Web Manifest
       manifest: {
-        name: 'Inventory System',
+        name: 'Inventory App',
         short_name: 'Inventory',
-        description: 'Your new modern inventory system.',
-        theme_color: '#ffffff',
+        start_url: '/',
+        display: 'standalone',
+        background_color: '#ffffff',
+        theme_color: '#000000',
         icons: [
-          {
-            src: 'pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
-            purpose: 'any maskable'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-          },
-        ],
+          { src: '/static/images/itekton-logo.png', sizes: '512x512', type: 'image/png' }
+        ]
       },
-    }),
-  ],
-
-  // Tell Vite to output the final built files into the Django static-friendly folder
-  build: {
-    // Output directory is relative to the project root (../static/frontend)
-    outDir: '../static/frontend', 
-    emptyOutDir: true,
-    // Force consistent filenames
-    rollupOptions: {
-      output: {
-        entryFileNames: 'assets/index.js',  // Forces "index.js"
-        chunkFileNames: 'assets/[name].js', 
-        assetFileNames: 'assets/[name].[ext]', // Forces "index.css"
+      // Use injectManifest to allow custom background sync code in src-sw.js
+      srcDir: 'src',
+      filename: 'sw.js',
+      strategies: 'injectManifest',
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,png,jpg,svg,json}']
       }
-    }
+    })
+  ],
+  build: {
+    outDir: path.resolve(__dirname, '../static/frontend'),
+    emptyOutDir: true,
+    manifest: true,
   },
-})
+});
+

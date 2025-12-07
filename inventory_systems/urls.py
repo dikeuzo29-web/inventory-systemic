@@ -29,16 +29,15 @@ from django.http import FileResponse, HttpResponse
 from django.views.decorators.http import require_GET
 
 @require_GET
-def service_worker(request):
-    # Path to the service worker file built by Vite
-    sw_path = settings.BASE_DIR / 'static' / 'frontend' / 'sw.js'
+def sw(request):
+    sw_path = BASE_DIR / 'static' / 'frontend' / 'sw.js'
     try:
         response = FileResponse(open(sw_path, 'rb'), content_type='application/javascript')
-        # CRITICAL: Allows the Service Worker scope to cover the entire domain
         response['Service-Worker-Allowed'] = '/'
         return response
     except FileNotFoundError:
-        return HttpResponse('Service Worker Not Found', status=404)
+        return HttpResponse('Not found', status=404)
+
 
 def homepage(request):
     return render(request, "stock/homepage.html")
@@ -56,7 +55,7 @@ urlpatterns = [
     path("", homepage, name="home"),
     
     # PWA routes - ADD THES
-    path('sw.js', service_worker),
+   path('sw.js', sw), 
     path("offline/", TemplateView.as_view(template_name="offline.html"), name="offline"),
     
     # Public schema APIs
