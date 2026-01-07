@@ -170,6 +170,9 @@ SIMPLE_JWT = {
 }
 
 LOGIN_URL = "/api/accounts/login/"
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 
 # ------------------------------------------------------------
 # STATIC FILES (Render)
