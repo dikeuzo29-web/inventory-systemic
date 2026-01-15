@@ -119,8 +119,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
 
     # Tenant middleware here (NOT at the top)
-    "django_tenants.middleware.SubfolderTenantMiddleware
-",
+    "django_tenants.middleware.SubfolderTenantMiddleware",
 
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
