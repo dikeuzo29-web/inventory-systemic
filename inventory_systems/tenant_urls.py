@@ -10,5 +10,5 @@ urlpatterns = [
     path("api/accounts/", include("accounts.urls")),                # Tenant accounts
     path("api/stock/", include("stock.urls")),                      # Tenant stock API
     path("offline/", render, {"template_name": "offline.html"}),    # Optional offline page
-    path("", include("pwa.urls")),                                  # PWA routes
-]
+#     path("", include("pwa.urls")),                                  # PWA routes
+# ]
