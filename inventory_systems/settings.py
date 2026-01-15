@@ -112,20 +112,20 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
 
-    # Session must load BEFORE tenant middleware
-    "django.contrib.sessions.middleware.SessionMiddleware",
+    # ✅ Tenant middleware MUST be early
+    "django_tenants.middleware.TenantSubfolderMiddleware",
 
+    # Now sessions & common stuff
+    "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "corsheaders.middleware.CorsMiddleware",
-
-    # Tenant middleware here (NOT at the top)
-    "django_tenants.middleware.TenantSubfolderMiddleware",
 
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
 
 ROOT_URLCONF = "inventory_systems.urls"
 
