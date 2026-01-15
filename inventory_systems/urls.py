@@ -53,12 +53,6 @@ def chart_data(request):
 
 urlpatterns = [
     path("", homepage, name="home"),
-
-    path(
-        f"{settings.TENANT_SUBFOLDER_PREFIX}/",
-        include(settings.TENANT_URLCONF),
-    ),
-    
     # PWA routes - ADD THES
    path('sw.js', sw), 
     path("offline/", TemplateView.as_view(template_name="offline.html"), name="offline"),
