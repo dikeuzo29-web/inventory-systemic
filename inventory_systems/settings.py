@@ -72,10 +72,10 @@ TENANT_APPS = [
 
 INSTALLED_APPS = SHARED_APPS + [app for app in TENANT_APPS if app not in SHARED_APPS]
 
+ROOT_URLCONF = "inventory_systems.urls"
 TENANT_MODEL = "tenants.Client"
 TENANT_DOMAIN_MODEL = "tenants.Domain"
 TENANT_URLCONF = "inventory_systems.tenant_urls"
-TENANT_BASE_URLCONF = "inventory_systems.tenant_urls"
 TENANT_SUBFOLDER_PREFIX = "clients"
 
 DATABASE_ROUTERS = ["django_tenants.routers.TenantSyncRouter"]
@@ -125,9 +125,6 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-
-
-ROOT_URLCONF = "inventory_systems.urls"
 
 # ------------------------------------------------------------
 # TEMPLATES
