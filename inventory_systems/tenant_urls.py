@@ -1,14 +1,34 @@
-#inventory_systems/tenant_urls.py
+# inventory_systems/urls.py
+from django.contrib import admin
 from django.urls import path, include
-from django.shortcuts import render, redirect
+from django.conf import settings
+from django.shortcuts import render
+from django.views.generic import TemplateView
+from django.views.generic import RedirectView
 
-def tenant_home(request):
+def homepage(request):
     return render(request, "stock/homepage.html")
 
 urlpatterns = [
-    path("", tenant_home, name="tenant_home"),                      # Tenant homepage
-    path("api/accounts/", include("accounts.urls")),                # Tenant accounts
-    path("api/stock/", include("stock.urls")),                      # Tenant stock API
-    path("offline/", render, {"template_name": "offline.html"}),    # Optional offline page
+    # Public homepage
+    path("", homepage, name="home"),
+
+    # ✅ ENABLE SUBFOLDER TENANTS
+    path(
+        f"{settings.TENANT_SUBFOLDER_PREFIX}/",
+        include(settings.TENANT_URLCONF),
+    ),
+
+    # Public APIs
+    path("api/accounts/", include("accounts.urls")),
+    path("api/stock/", include("stock.urls")),
+
+    # PWA + offline
+    path("offline/", TemplateView.as_view(template_name="offline.html")),
+
+    # Admin
+    path("admin/", admin.site.urls),
+]
+
 #     path("", include("pwa.urls")),                                  # PWA routes
 # ]
