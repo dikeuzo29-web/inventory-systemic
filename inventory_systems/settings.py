@@ -78,7 +78,7 @@ TENANT_DOMAIN_MODEL = "tenants.Domain"
 TENANT_URLCONF = "inventory_systems.tenant_urls"
 TENANT_SUBFOLDER_PREFIX = '/clients'
 
-DATABASE_ROUTERS = ["django_tenants.routers.TenantSyncRouter"]
+DATABASE_ROUTERS = ("django_tenants.routers.TenantSyncRouter",)
 
 # ------------------------------------------------------------
 # DATABASE (Neon PostgreSQL)
@@ -109,12 +109,10 @@ DATABASES["default"]["OPTIONS"] = {
 # MIDDLEWARE (Correct order for django-tenants)
 # ------------------------------------------------------------
 MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
-
     # ✅ Tenant middleware MUST be early
     "django_tenants.middleware.TenantSubfolderMiddleware",
-
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     # Now sessions & common stuff
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
