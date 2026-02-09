@@ -393,6 +393,14 @@
                             
                             <div class="form-group">
                                 <label class="form-label">Product</label>
+                                <!-- 🔍 Search (filters the dropdown below) -->
+                                <input
+                                    type="text"
+                                    id="product-search"
+                                    class="form-input"
+                                    placeholder="Search product..."
+                                    style="margin-bottom: 0.5rem;"
+                                />
                                 <select name="{{ form.product.html_name }}" class="form-select product-select" required>
                                     <option value="">Select a product...</option>
                                     {% for product in form.product.field.queryset %}
