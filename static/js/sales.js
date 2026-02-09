@@ -1,8 +1,8 @@
 // static/js/sales.js
 
 document.addEventListener("DOMContentLoaded", function () {
-    const form = document.getElementById("salesForm");
-    if (!form) return; // Safety guard if form doesn't exist
+    // const form = document.getElementById("salesForm");
+    // if (!form) return; // Safety guard if form doesn't exist
 
     // 🔍 Product search filtering
     const productSearch = document.getElementById("product-search");
@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const text = option.text.toLowerCase();
                 option.style.display = text.includes(searchValue) ? "" : "none";
             });
+            productSelect.size = 6;
         });
     
         // Optional: clear search once product is chosen
