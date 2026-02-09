@@ -4,6 +4,29 @@ document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("salesForm");
     if (!form) return; // Safety guard if form doesn't exist
 
+    // 🔍 Product search filtering
+    const productSearch = document.getElementById("product-search");
+    const productSelect = document.getElementById("product-select");
+    
+    if (productSearch && productSelect) {
+        productSearch.addEventListener("input", function () {
+            const searchValue = this.value.toLowerCase();
+    
+            Array.from(productSelect.options).forEach(option => {
+                if (!option.value) return; // keep placeholder
+    
+                const text = option.text.toLowerCase();
+                option.style.display = text.includes(searchValue) ? "" : "none";
+            });
+        });
+    
+        // Optional: clear search once product is chosen
+        productSelect.addEventListener("change", function () {
+            productSearch.value = "";
+        });
+    }
+
+
     form.addEventListener("submit", async function (e) {
         e.preventDefault(); // Always prevent default
 
