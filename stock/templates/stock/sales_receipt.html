@@ -146,7 +146,7 @@
     }
 </style>
 
-<div class="receipt-container">
+<div class="receipt-container" data-sale-id="{{ sale.id }}">
     <div class="receipt-header">
         <img src="{% static 'image/itekton-logo.jpg' %}" alt="iTekton Logo" class="receipt-logo">
         <h1>Sales Receipt</h1>
@@ -260,8 +260,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
             canvas.toBlob(function(blob) {
 
+                const saleId = document.querySelector(".receipt-container").dataset.saleId;
                 const file = new File([blob], 
-                    "receipt_{{ sale.id }}.png",
+                    "receipt_" + saleId + ".png",
                     { type: "image/png" }
                 );
 
