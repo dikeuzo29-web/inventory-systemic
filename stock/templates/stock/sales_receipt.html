@@ -15,15 +15,12 @@
     .receipt-container {
         max-width: 480px;
         margin: 2rem auto;
-        padding: 20px;
+        padding: 2rem;
         border: 1px solid #dee2e6;
-        background-color: #ffffff;
-        color: #000000;
-        font-weight: 600;
+        background-color: #fff;
         box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
         border-radius: 8px;
-        font-family: 'Roboto Mono', 'Inconsolata', monospace;
-
+        font-family: "Roboto Mono", "DejaVu Sans Mono", monospace;
     }
 
     .receipt-header {
@@ -146,7 +143,7 @@
     }
 </style>
 
-<div class="receipt-container" data-sale-id="{{ sale.id }}">
+<div class="receipt-container">
     <div class="receipt-header">
         <img src="{% static 'image/itekton-logo.jpg' %}" alt="iTekton Logo" class="receipt-logo">
         <h1>Sales Receipt</h1>
@@ -183,13 +180,13 @@
                 <tr>
                     <td>{{ item.product.name }}</td>
                     <td align="right">{{ item.quantity }}</td>
-                    <td align="right">₦{{ item.price|floatformat:2|intcomma }}</td>
-                    <td align="right">₦{{ item.subtotal|floatformat:2|intcomma }}</td>
+                    <td align="right">&#8358;{{ item.price|floatformat:2|intcomma }}</td>
+                    <td align="right">&#8358;{{ item.subtotal|floatformat:2|intcomma }}</td>
                 </tr>
                 {% if item.deposit_amount > 0 %}
                 <tr>
                     <td colspan="3" align="right"><em>Container Deposit</em></td>
-                    <td align="right">₦{{ item.deposit_amount|floatformat:2|intcomma }}</td>
+                    <td align="right">&#8358;{{ item.deposit_amount|floatformat:2|intcomma }}</td>
                 </tr>
                 {% endif %}
                 {% endfor %}
@@ -202,17 +199,17 @@
     <div class="receipt-summary">
         <dl class="info-grid">
             <dt>Subtotal:</dt>
-            <dd>₦{{ sale.items.all|aggregate_sum:'subtotal'|floatformat:2|intcomma }}</dd>
+            <dd>&#8358;{{ sale.items.all|aggregate_sum:'subtotal'|floatformat:2|intcomma }}</dd>
 
             {% with deposit_total=sale.items.all|aggregate_sum:'deposit_amount' %}
             {% if deposit_total > 0 %}
             <dt>Deposit Total:</dt>
-            <dd>₦{{ deposit_total|floatformat:2|intcomma }}</dd>
+            <dd>&#8358;{{ deposit_total|floatformat:2|intcomma }}</dd>
             {% endif %}
             {% endwith %}
             
             <dt class="grand-total">Total Paid:</dt>
-            <dd class="grand-total">₦{{ sale.total_amount|floatformat:2|intcomma }}</dd>
+            <dd class="grand-total">&#8358;{{ sale.total_amount|floatformat:2|intcomma }}</dd>
         </dl>
     </div>
 
@@ -220,7 +217,7 @@
     {% if deposit_total > 0 %}
     <div class="deposit-notice">
         <p><strong>Deposit Information:</strong></p>
-        <p>You paid ₦{{ deposit_total|floatformat:2|intcomma }} as container deposit. 
+        <p>You paid &#8358;{{ deposit_total|floatformat:2|intcomma }} as container deposit. 
         Present this receipt when returning empty containers for your refund.</p>
     </div>
     {% endif %}
@@ -234,7 +231,7 @@
     </div>
 
     <div class="receipt-actions no-print">
-        <button type="button" class="btn btn-print">
+        <button type="button" class="btn btn-print" onclick="window.print();">
             <i class="fas fa-print"></i> Print Receipt
         </button>
         <a href="{% url 'manage_sales' %}" class="btn btn-back">
@@ -244,93 +241,11 @@
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-
-    const printBtn = document.querySelector(".btn-print");
-
-    printBtn.addEventListener("click", function() {
-
-        const receipt = document.querySelector(".receipt-container");
-
-        html2canvas(receipt, {
-            scale: 3,        // High resolution for glossy paper
-            useCORS: true,
-            backgroundColor: "#ffffff"
-        }).then(canvas => {
-
-            canvas.toBlob(function(blob) {
-
-                const saleId = document.querySelector(".receipt-container").dataset.saleId;
-                const file = new File([blob], 
-                    "receipt_" + saleId + ".png",
-                    { type: "image/png" }
-                );
-
-
-                // Create share intent
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-
-                    navigator.share({
-                        files: [file],
-                        title: "Receipt",
-                        text: "Print receipt"
-                    }).catch(console.error);
-
-                } else {
-
-                    // fallback if share API not supported
-                    const link = document.createElement("a");
-                    link.href = URL.createObjectURL(blob);
-                    link.download = "receipt.png";
-                    link.click();
-                }
-
-            }, "image/png");
-
-        });
-
-    });
-
-});
-</script>
-
-
-<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const printBtn = document.querySelector('.btn-print');
-
-    printBtn.addEventListener("click", function() {
-        const receipt = document.querySelector(".receipt-container");
-
-        html2canvas(receipt, {
-            scale: 2,         // ↑ Higher resolution
-            useCORS: true     // enable for images
-        }).then(canvas => {
-            const imgData = canvas.toDataURL("image/png");
-
-            // Open the image in a new tab (optional)
-            const imageWindow = window.open("", "_blank");
-            imageWindow.document.write(`<img src="${imgData}" style="width:100%">`);
-
-            // Trigger download if needed
-            const a = document.createElement("a");
-            a.href = imgData;
-            a.download = `receipt_${{{ sale.id }}}.png`;
-            a.click();
-        });
-    });
-});
-</script> -->
-
-
-<!-- <script>
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('.btn-print').addEventListener('click', function() {
         window.print();
     });
 });
-</script> -->
+</script>
 
 {% endblock %}
