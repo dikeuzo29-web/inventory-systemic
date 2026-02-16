@@ -15,12 +15,15 @@
     .receipt-container {
         max-width: 480px;
         margin: 2rem auto;
-        padding: 2rem;
+        padding: 20px;
         border: 1px solid #dee2e6;
-        background-color: #fff;
+        background-color: #ffffff;
+        color: #000000;
+        font-weight: 600;
         box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
         border-radius: 8px;
-        font-family: 'Courier New', Courier, monospace;
+        font-family: 'Roboto Mono', 'Inconsolata', monospace;
+
     }
 
     .receipt-header {
@@ -241,11 +244,91 @@
 </div>
 
 <script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    const printBtn = document.querySelector(".btn-print");
+
+    printBtn.addEventListener("click", function() {
+
+        const receipt = document.querySelector(".receipt-container");
+
+        html2canvas(receipt, {
+            scale: 3,        // High resolution for glossy paper
+            useCORS: true,
+            backgroundColor: "#ffffff"
+        }).then(canvas => {
+
+            canvas.toBlob(function(blob) {
+
+                const file = new File([blob], 
+                    `receipt_${Date.now()}.png`, 
+                    { type: "image/png" }
+                );
+
+                // Create share intent
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+
+                    navigator.share({
+                        files: [file],
+                        title: "Receipt",
+                        text: "Print receipt"
+                    }).catch(console.error);
+
+                } else {
+
+                    // fallback if share API not supported
+                    const link = document.createElement("a");
+                    link.href = URL.createObjectURL(blob);
+                    link.download = "receipt.png";
+                    link.click();
+                }
+
+            }, "image/png");
+
+        });
+
+    });
+
+});
+</script>
+
+
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const printBtn = document.querySelector('.btn-print');
+
+    printBtn.addEventListener("click", function() {
+        const receipt = document.querySelector(".receipt-container");
+
+        html2canvas(receipt, {
+            scale: 2,         // ↑ Higher resolution
+            useCORS: true     // enable for images
+        }).then(canvas => {
+            const imgData = canvas.toDataURL("image/png");
+
+            // Open the image in a new tab (optional)
+            const imageWindow = window.open("", "_blank");
+            imageWindow.document.write(`<img src="${imgData}" style="width:100%">`);
+
+            // Trigger download if needed
+            const a = document.createElement("a");
+            a.href = imgData;
+            a.download = `receipt_${{{ sale.id }}}.png`;
+            a.click();
+        });
+    });
+});
+</script> -->
+
+
+<!-- <script>
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('.btn-print').addEventListener('click', function() {
         window.print();
     });
 });
-</script>
+</script> -->
 
 {% endblock %}
