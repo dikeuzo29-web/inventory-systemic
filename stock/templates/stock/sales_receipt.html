@@ -261,9 +261,10 @@ document.addEventListener("DOMContentLoaded", function() {
             canvas.toBlob(function(blob) {
 
                 const file = new File([blob], 
-                    `receipt_${Date.now()}.png`, 
+                    "receipt_{{ sale.id }}.png",
                     { type: "image/png" }
                 );
+
 
                 // Create share intent
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
