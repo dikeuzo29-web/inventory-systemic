@@ -46,6 +46,6 @@ def restore_stock_when_sale_deleted(sender, instance, **kwargs):
             item.product.adjust_stock(item.quantity)
 
 
-@receiver(pre_delete, sender=SaleItem)
-def restore_stock_when_item_deleted(sender, instance, **kwargs):
-    instance.product.adjust_stock(instance.quantity)
+# @receiver(pre_delete, sender=SaleItem)
+# def restore_stock_when_item_deleted(sender, instance, **kwargs):
+#     instance.product.adjust_stock(instance.quantity)
