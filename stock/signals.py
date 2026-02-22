@@ -1,7 +1,7 @@
 import logging
 from django.db.models.signals import post_save, pre_delete
 from django.db import transaction
-from .models import Transaction, Product, Sale, Saletem
+from .models import Transaction, Product, Sale, SaleItem
 
 audit_logger = logging.getLogger('audit')
 
