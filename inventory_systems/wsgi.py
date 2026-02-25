@@ -8,14 +8,8 @@ https://docs.djangoproject.com/en/5.1/howto/deployment/wsgi/
 """
 
 import os
-import django
 from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'inventory_systems.settings')
-
-django.setup()
-
-from inventory_systems.startup import ensure_afam_tenant
-ensure_afam_tenant()  # ✅ create tenant if missing
 
 application = get_wsgi_application()
