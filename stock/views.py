@@ -85,6 +85,15 @@ class SalesTransactionViewSet(TenantQuerysetMixin, viewsets.ModelViewSet):
     serializer_class = SaleSerializer
     permission_classes = [IsCashierOrManager]
 
+    def get_queryset(self):
+        return (
+            Sale.objects
+            .filter(tenant=self.request.user.company)
+            .select_related("created_by")
+            .prefetch_related("items__product")
+            .order_by("-id")
+        )
+
     def perform_create(self, serializer):
         serializer.save(tenant=self.request.user.company, created_by=self.request.user)
 
