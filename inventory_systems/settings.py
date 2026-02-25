@@ -156,6 +156,7 @@ DATABASES = {
         ssl_require=True,
     )
 }
+DATABASES["default"]["OPTIONS"] = {"sslmode": "require", "keepalives": 1, "keepalives_idle": 30}
 
 
 RUNNING_LOCALLY = env.bool("RUNNING_LOCALLY", default=False)
