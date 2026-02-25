@@ -41,8 +41,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://web-production-6f92.up.railway.app",
     "https://inventory-sys-ntjc.onrender.com",
 ]
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 #Add Render's hostname if it exists
@@ -54,11 +54,36 @@ if RENDER_HOSTNAME:
 
 # Application definition
 
-# settings.py
-SHARED_APPS = [
-    'django_tenants',        # MUST be first
+# # settings.py
+# SHARED_APPS = [
+#     #'django_tenants',        # MUST be first
+#     'tenants',
+#     'accounts',              # ✅ Move here (before admin)
+#     'stock',
+#     'django.contrib.admin',
+#     'django.contrib.auth',
+#     'django.contrib.contenttypes',
+#     'django.contrib.sessions',
+#     'django.contrib.messages',
+#     'django.contrib.staticfiles',
+#     'django.contrib.humanize',
+#     'corsheaders',
+#     'pwa',
+    
+# ]
+
+# TENANT_APPS = [
+#     'rest_framework',
+#     'rest_framework_simplejwt',
+#     'djoser',
+    
+    
+# ]
+
+
+INSTALLED_APPS = [
     'tenants',
-    'accounts',              # ✅ Move here (before admin)
+    'accounts',
     'stock',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -69,33 +94,21 @@ SHARED_APPS = [
     'django.contrib.humanize',
     'corsheaders',
     'pwa',
-    
-]
-
-TENANT_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'djoser',
-    
-    
 ]
 
-
-# settings.py
-INSTALLED_APPS = list(SHARED_APPS) + [
-    app for app in TENANT_APPS if app not in SHARED_APPS
-]
-
-# Tenant models
+# # Tenant models
 TENANT_MODEL = "tenants.Client"
 TENANT_DOMAIN_MODEL = "tenants.Domain"
-TENANT_URLCONF = 'inventory_systems.tenant_urls'
+# TENANT_URLCONF = 'inventory_systems.tenant_urls'
 
 # settings.py
 MIDDLEWARE = [   
     'django.middleware.security.SecurityMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    'django_tenants.middleware.TenantSubfolderMiddleware', 
+    #'django_tenants.middleware.TenantSubfolderMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',  # Keep early
     'django.middleware.common.CommonMiddleware',
@@ -134,13 +147,15 @@ WSGI_APPLICATION = 'inventory_systems.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
+import dj_database_url
 
+DATABASES = {
+    "default": dj_database_url.config(
+        default=os.environ.get("DATABASE_URL"),
+        conn_max_age=600,
+        ssl_require=True,
+    )
+}
 
 
 RUNNING_LOCALLY = env.bool("RUNNING_LOCALLY", default=False)
@@ -184,24 +199,24 @@ RUNNING_LOCALLY = env.bool("RUNNING_LOCALLY", default=False)
 # DATABASES["default"]["ENGINE"] = "django_tenants.postgresql_backend"
 
 # Database Configuration - SIMPLIFIED
-import dj_database_url
+# import dj_database_url
 import os
 
-DATABASE_ROUTERS = ["django_tenants.routers.TenantSyncRouter"]
+# DATABASE_ROUTERS = ["django_tenants.routers.TenantSyncRouter"]
 
-DATABASES = {
-    "default": dj_database_url.config(
-        default=os.environ.get("DATABASE_URL"),
-        conn_max_age=600,
-        ssl_require=True,
-    )
-}
+# DATABASES = {
+#     "default": dj_database_url.config(
+#         default=os.environ.get("DATABASE_URL"),
+#         conn_max_age=600,
+#         ssl_require=True,
+#     )
+# }
 
-# Force django-tenants backend
-DATABASES["default"]["ENGINE"] = "django_tenants.postgresql_backend"
+# # Force django-tenants backend
+# DATABASES["default"]["ENGINE"] = "django_tenants.postgresql_backend"
 
-# Ensure SSL mode (Neon requires this)
-DATABASES["default"]["OPTIONS"] = {"sslmode": "require"}
+# # Ensure SSL mode (Neon requires this)
+# DATABASES["default"]["OPTIONS"] = {"sslmode": "require"}
 
 
 

@@ -1,0 +1,15 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\accounts",
+    "\\accounts\\management\\commands",
+    "\\inventory_systems",
+    "\\stock",
+    "\\stock\\templates",
+    "\\stock\\templates\\stock",
+    "\\stock\\templatetags",
+    "\\tenants"
+  ],
+  "SelectedNode": "\\accounts\\admin.py",
+  "PreviewInSolutionExplorer": false
+}

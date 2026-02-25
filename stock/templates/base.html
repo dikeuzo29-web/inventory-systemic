@@ -407,7 +407,7 @@
             {% endif %}
             
             {% if user.role == 'cashier' or user.role == 'manager' %}
-            <a href="/api/stock/sales/" class="nav-link">
+            <a href="{% url 'manage_sales' %}" class="nav-link {% if request.resolver_match.url_name == 'manage_sales' %}active{% endif %}">
                 <i class="fas fa-shopping-cart"></i>
                 Sales
             </a>

@@ -1,17 +1,9 @@
 from django import forms
-from .models import Category, Product, Transaction
-from datetime import date
 from django.core.exceptions import ValidationError
+from django.forms import modelformset_factory
+from .models import Category, Product, Transaction, SaleItem
+from datetime import date
 
-# class SalesTransactionForm(forms.ModelForm):
-#     class Meta:
-#         model = Transaction
-#         fields = ['product', 'quantity']
-#         # transaction_type will be set in the view
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         # Optionally restrict products to those with some stock.
-#         self.fields['product'].queryset = Product.objects.filter(quantity__gt=0)
 
 class ProductForm(forms.ModelForm):
     is_returnable = forms.TypedChoiceField(
@@ -24,8 +16,7 @@ class ProductForm(forms.ModelForm):
 
     class Meta:
         model = Product
-        # fields = '__all__'  <-- REMOVE this line
-        exclude = ['tenant']  # <-- ADD this line inside Meta
+        exclude = ['tenant']
         widgets = {
             'expiry_date': forms.DateInput(attrs={'type': 'date'}),
             'description': forms.Textarea(attrs={'rows': 3}),
@@ -34,68 +25,61 @@ class ProductForm(forms.ModelForm):
     def clean_deposit_amount(self):
         is_returnable = self.cleaned_data.get('is_returnable')
         deposit_amount = self.cleaned_data.get('deposit_amount')
-        
         if is_returnable and deposit_amount <= 0:
             raise ValidationError("Deposit amount must be greater than 0 for returnable products.")
         if not is_returnable and deposit_amount != 0:
             raise ValidationError("Deposit amount must be 0 for non-returnable products.")
-            
         return deposit_amount
+
 
 class SalesTransactionForm(forms.ModelForm):
     class Meta:
         model = Transaction
         fields = ['product', 'quantity']
-        widgets = {
-            'quantity': forms.NumberInput(attrs={'min': 1}),
-        }
+        widgets = {'quantity': forms.NumberInput(attrs={'min': 1})}
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        self.fields['product'].queryset = Product.objects.filter(quantity__gt=0)
+        if user:
+            self.fields['product'].queryset = Product.objects.filter(
+                tenant=user.company, quantity__gt=0)
+        else:
+            self.fields['product'].queryset = Product.objects.none()
 
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
         product = self.cleaned_data.get('product')
-        
         if product and quantity > product.quantity:
             raise ValidationError(f"Only {product.quantity} units available in stock.")
-            
         return quantity
-    
-# forms.py
-from django import forms
-from django.core.exceptions import ValidationError
-from django.forms import modelformset_factory
-from .models import SaleItem, Product
+
 
 class SaleItemForm(forms.ModelForm):
     class Meta:
         model = SaleItem
         fields = ['product', 'quantity']
-        widgets = {
-            'quantity': forms.NumberInput(attrs={'min': 1}),
-        }
+        widgets = {'quantity': forms.NumberInput(attrs={'min': 1})}
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        self.fields['product'].queryset = Product.objects.filter(quantity__gt=0)
+        if user:
+            self.fields['product'].queryset = Product.objects.filter(
+                tenant=user.company, quantity__gt=0)
+        else:
+            self.fields['product'].queryset = Product.objects.none()
 
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
         product = self.cleaned_data.get('product')
-
         if product and quantity > product.quantity:
             raise ValidationError(f"Only {product.quantity} units available in stock.")
         return quantity
 
 
-# 👇 You can define this formset near the bottom of forms.py
 SaleItemFormSet = modelformset_factory(
-    SaleItem,
-    form=SaleItemForm,
-    extra=100,
-    can_delete=False
+    SaleItem, form=SaleItemForm, extra=100, can_delete=False
 )
 
 
@@ -103,45 +87,39 @@ class BottleReturnForm(forms.ModelForm):
     class Meta:
         model = Transaction
         fields = ['product', 'quantity']
-        widgets = {
-            'quantity': forms.NumberInput(attrs={'min': 1}),
-        }
+        widgets = {'quantity': forms.NumberInput(attrs={'min': 1})}
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        self.fields['product'].queryset = Product.objects.filter(
-            is_returnable=True, 
-            bottles_outstanding__gt=0
-        )
-
-        # If a product is already bound, show its outstanding bottles
-        if 'product' in self.data:
-            try:
-                product_id = int(self.data.get('product'))
-                product = Product.objects.get(id=product_id)
-                self.fields['bottles_outstanding'].initial = self.instance.product.bottles_outstanding
-
-            except (ValueError, Product.DoesNotExist):
-                pass
-        elif self.instance.pk:  # editing an existing return
-            self.fields['bottles_outstanding'].initial = self.instance.product.bottles_outstanding
+        qs = Product.objects.filter(is_returnable=True, bottles_outstanding__gt=0)
+        if user:
+            qs = qs.filter(tenant=user.company)
+        self.fields['product'].queryset = qs
 
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
         product = self.cleaned_data.get('product')
-        
         if product and quantity > product.bottles_outstanding:
             raise ValidationError(
-                f"Only {product.bottles_outstanding} containers outstanding for this product."
-            )
-            
+                f"Only {product.bottles_outstanding} containers outstanding.")
         return quantity
+
 
 class RestockTransactionForm(forms.ModelForm):
     class Meta:
         model = Transaction
         fields = ['product', 'quantity']
-        # transaction_type will be set in the view
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        if user:
+            self.fields['product'].queryset = Product.objects.filter(
+                tenant=user.company)
+        else:
+            self.fields['product'].queryset = Product.objects.none()
+
 
 class CategoryForm(forms.ModelForm):
     class Meta:

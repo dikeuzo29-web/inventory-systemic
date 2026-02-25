@@ -114,6 +114,7 @@ def dashboard(request):
 
     # Filter transactions using the calculated timezone-aware datetime range
     transactions = Transaction.objects.filter(
+        tenant=request.user.company,
         timestamp__gte=start_datetime,
         timestamp__lt=end_datetime,
         transaction_type='sale'
@@ -132,7 +133,7 @@ def dashboard(request):
     )
 
     # --- Current Inventory Status ---
-    products = Product.objects.all().order_by('name')
+    products = Product.objects.filter(tenant=request.user.company).order_by('name')
     current_stock_list = []
     total_inventory_value = Decimal(0)
 
@@ -181,7 +182,7 @@ def dashboard(request):
     )
     
     category_value = (
-        Product.objects
+        Product.objects.filter(tenant=request.user.company)
         .values('category__name')
         .annotate(total_value=Coalesce(Sum(value_expr), Decimal(0)))
         .order_by('-total_value')

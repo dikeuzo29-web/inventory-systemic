@@ -4,25 +4,13 @@ from django.utils import timezone
 from django.conf import settings
 import uuid
 from decimal import Decimal
-from django.db import connection
-from django_tenants.utils import get_public_schema_name
 from django.db.models import F
+from tenants.models import Client
 
 
 class Category(models.Model):
-    """
-    Represents a product category.
-    """
-
-    tenant = models.ForeignKey(
-        settings.TENANT_MODEL,
-        on_delete=models.CASCADE,
-        related_name="categories"
-    )
-    name = models.CharField(
-        max_length=255,
-        help_text="Enter the category name (e.g. Electronics, Groceries)."
-    )
+    tenant = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="categories")
+    name = models.CharField(max_length=255)
 
     class Meta:
         verbose_name_plural = 'categories'
@@ -31,44 +19,17 @@ class Category(models.Model):
             models.UniqueConstraint(fields=['tenant', 'name'], name='unique_tenant_category')
         ]
 
-    def save(self, *args, **kwargs):
-        if not self.tenant_id and hasattr(connection, "tenant"):
-            if connection.tenant.schema_name != get_public_schema_name():
-                self.tenant = connection.tenant
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return self.name
 
-class Product(models.Model):
-    """
-    Represents a product with its details.
-    """
 
-    tenant = models.ForeignKey(
-        settings.TENANT_MODEL,
-        on_delete=models.CASCADE,
-        related_name="products"
-    )
-    name = models.CharField(max_length=255, help_text="Enter the product name.")
+class Product(models.Model):
+    tenant = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="products")
+    name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.SET_NULL,
-        null=True,
-        help_text="Select the category for this product."
-    )
-    quantity = models.IntegerField(
-        default=0,
-        validators=[MinValueValidator(0)],
-        help_text="Enter the current stock level."
-    )
-    price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        validators=[MinValueValidator(0.01)],
-        help_text="Enter the price of the product."
-    )
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
+    quantity = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)])
     expiry_date = models.DateField(blank=True, null=True)
     low_stock_threshold = models.PositiveIntegerField(default=10)
     sku = models.CharField(max_length=20, blank=True, null=True)
@@ -83,11 +44,6 @@ class Product(models.Model):
             models.UniqueConstraint(fields=['tenant', 'sku'], name='unique_tenant_sku')
         ]
 
-    # def save(self, *args, **kwargs):
-    #     if not self.sku:
-    #         self.sku = str(uuid.uuid4())[:20]
-    #     super().save(*args, **kwargs)
-
     @property
     def is_low_stock(self):
         return self.quantity <= self.low_stock_threshold
@@ -99,46 +55,29 @@ class Product(models.Model):
         return False
 
     def adjust_stock(self, delta):
-        # self.quantity += delta  <-- This is the race condition
-        # self.save()
-
-        # This is the atomic, race-condition-safe way
         Product.objects.filter(pk=self.pk).update(quantity=F('quantity') + delta)
-        self.refresh_from_db(fields=['quantity']) # Optional: update the current instance
+        self.refresh_from_db(fields=['quantity'])
 
     @property
     def total_price(self):
         return self.price + self.deposit_amount if self.is_returnable else self.price
 
     def save(self, *args, **kwargs):
-        # Auto-generate SKU
         if not self.sku:
             self.sku = str(uuid.uuid4())[:20]
-
-        # Auto-assign tenant if not set
-        if not self.tenant_id and hasattr(connection, "tenant"):
-            if connection.tenant.schema_name != get_public_schema_name():
-                self.tenant = connection.tenant
-
         super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
-    
+
+
 class Sale(models.Model):
-    """
-    Represents a complete sale transaction (which may include multiple products).
-    """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    tenant = models.ForeignKey(
-        settings.TENANT_MODEL,
-        on_delete=models.CASCADE,
-        related_name="sales"
-    )
+    tenant = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="sales")
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     timestamp = models.DateTimeField(default=timezone.now)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    payment_method = models.CharField(max_length=50, blank=True, null=True)  # e.g., 'cash', 'transfer', 'POS'
+    payment_method = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         ordering = ['-timestamp']
@@ -154,10 +93,8 @@ class Sale(models.Model):
         self.total_amount = total
         self.save(update_fields=['total_amount'])
 
+
 class SaleItem(models.Model):
-    """
-    Line item in a sale (one product per row).
-    """
     sale = models.ForeignKey(Sale, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
@@ -166,18 +103,10 @@ class SaleItem(models.Model):
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     def save(self, *args, **kwargs):
-        # Compute subtotal automatically
         self.price = self.product.price
         self.deposit_amount = self.product.deposit_amount
         self.subtotal = (self.price + self.deposit_amount) * self.quantity
         super().save(*args, **kwargs)
-
-        # Reduce product stock
-        # if self.product.quantity >= self.quantity:
-        #     self.product.quantity -= self.quantity
-        #     self.product.save()
-        # else:
-        #     raise ValueError(f"Insufficient stock for {self.product.name}")
 
     def __str__(self):
         return f"{self.product.name} x {self.quantity}"
@@ -191,19 +120,8 @@ class Transaction(models.Model):
         ('deposit_collected', 'Deposit Collected'),
     )
 
-    tenant = models.ForeignKey(
-        settings.TENANT_MODEL,
-        on_delete=models.CASCADE,
-        related_name="transactions"
-    )
-    sale = models.ForeignKey(
-        Sale,
-        on_delete=models.CASCADE,
-        related_name='transactions',
-        null=True,
-        blank=True
-        )
-
+    tenant = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="transactions")
+    sale = models.ForeignKey(Sale, on_delete=models.CASCADE, related_name='transactions', null=True, blank=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.IntegerField()
     transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
@@ -219,7 +137,6 @@ class Transaction(models.Model):
             models.Index(fields=['-timestamp']),
             models.Index(fields=['transaction_type']),
         ]
-        
 
     def __str__(self):
         return f"{self.get_transaction_type_display()} - {self.product.name}"
@@ -234,10 +151,4 @@ class Transaction(models.Model):
             self.deposit_amount = Decimal(self.quantity) * self.product.deposit_amount
         elif self.transaction_type == 'deposit_collected':
             self.deposit_amount = Decimal(self.quantity) * self.product.deposit_amount
-
-         # Auto-assign tenant if not set
-        if not self.tenant_id and hasattr(connection, "tenant"):
-            if connection.tenant.schema_name != get_public_schema_name():
-                self.tenant = connection.tenant
-
         super().save(*args, **kwargs)

@@ -1,5 +1,6 @@
 # stock/serializers.py
 from rest_framework import serializers
+import tenants
 from .models import Category, Product, Transaction
 
 from rest_framework import serializers
@@ -29,7 +30,7 @@ class ProductSerializer(serializers.ModelSerializer):
         # Dynamically filter the category queryset based on the request user's company
         request = self.context.get('request')
         if request and hasattr(request.user, 'company'):
-            self.fields['category'].queryset = Category.objects.filter(company=request.user.company)
+            self.fields['category'].queryset = Category.objects.filter(tenant=request.user.company)
 
         elif hasattr(request, 'tenant'):
             self.fields['category'].queryset = Category.objects.filter(
@@ -45,11 +46,17 @@ class TransactionSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Transaction
-        fields = ['id', 'product', 'quantity', 'transaction_type', 'timestamp', 'created_by', 'company', 'amount', 'deposit_amount']
-        read_only_fields = ['transaction_type', 'timestamp', 'created_by', 'company', 'amount', 'deposit_amount']
+        fields = ['id', 'product', 'quantity', 'transaction_type', 'timestamp', 'created_by', 'tenant', 'amount', 'deposit_amount']
+        read_only_fields = ['transaction_type', 'timestamp', 'created_by', 'tenant', 'amount', 'deposit_amount']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         request = self.context.get('request')
         if request and hasattr(request.user, 'company'):
-            self.fields['product'].queryset = Product.objects.filter(company=request.user.company)
+            self.fields['product'].queryset = Product.objects.filter(tenant=request.user.company)
+
+
+class SaleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sale
+        fields = '__all__'

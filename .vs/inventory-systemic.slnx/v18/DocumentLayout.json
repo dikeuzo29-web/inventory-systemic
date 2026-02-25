@@ -1,0 +1,381 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\computer world\\source\\repos\\inventory-systemic\\accounts\\admin.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:accounts\\admin.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\computer world\\source\\repos\\inventory-systemic\\accounts\\views.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:accounts\\views.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\templates\\stock\\manage_bottle_returns.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:stock\\templates\\stock\\manage_bottle_returns.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\templatetags\\custom_filters.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:stock\\templatetags\\custom_filters.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\templatetags\\stock_extras.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:stock\\templatetags\\stock_extras.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\views.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:stock\\views.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\forms.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:stock\\forms.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\urls.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:stock\\urls.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\computer world\\source\\repos\\inventory-systemic\\inventory_systems\\urls.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:inventory_systems\\urls.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\templates\\base.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:stock\\templates\\base.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\admin.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:stock\\admin.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\computer world\\source\\repos\\inventory-systemic\\accounts\\management\\commands\\setup_tenant_user.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:accounts\\management\\commands\\setup_tenant_user.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\computer world\\source\\repos\\inventory-systemic\\accounts\\management\\commands\\__init__.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:accounts\\management\\commands\\__init__.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\computer world\\source\\repos\\inventory-systemic\\accounts\\models.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:accounts\\models.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\computer world\\source\\repos\\inventory-systemic\\inventory_systems\\settings.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:inventory_systems\\settings.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\computer world\\source\\repos\\inventory-systemic\\.env||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:.env||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\computer world\\source\\repos\\inventory-systemic\\inventory_systems\\tenant_urls.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:inventory_systems\\tenant_urls.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\computer world\\source\\repos\\inventory-systemic\\inventory_systems\\startup.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:inventory_systems\\startup.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\computer world\\source\\repos\\inventory-systemic\\tenants\\models.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:tenants\\models.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\models.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:stock\\models.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\computer world\\source\\repos\\inventory-systemic\\requirements.txt||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:requirements.txt||{8B382828-6202-11D1-8870-0000F87579D2}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 10,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "views.py",
+              "DocumentMoniker": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\accounts\\views.py",
+              "RelativeDocumentMoniker": "accounts\\views.py",
+              "ToolTip": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\accounts\\views.py",
+              "RelativeToolTip": "accounts\\views.py",
+              "ViewState": "AgIAAHkAAAAAAAAAAAAAAJMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2026-02-25T04:42:10.395Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "manage_bottle_returns.html",
+              "DocumentMoniker": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\templates\\stock\\manage_bottle_returns.html",
+              "RelativeDocumentMoniker": "stock\\templates\\stock\\manage_bottle_returns.html",
+              "ToolTip": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\templates\\stock\\manage_bottle_returns.html",
+              "RelativeToolTip": "stock\\templates\\stock\\manage_bottle_returns.html",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAYAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
+              "WhenOpened": "2026-02-25T04:26:43.429Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "stock_extras.py",
+              "DocumentMoniker": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\templatetags\\stock_extras.py",
+              "RelativeDocumentMoniker": "stock\\templatetags\\stock_extras.py",
+              "ToolTip": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\templatetags\\stock_extras.py",
+              "RelativeToolTip": "stock\\templatetags\\stock_extras.py",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2026-02-25T04:25:44.336Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "custom_filters.py",
+              "DocumentMoniker": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\templatetags\\custom_filters.py",
+              "RelativeDocumentMoniker": "stock\\templatetags\\custom_filters.py",
+              "ToolTip": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\templatetags\\custom_filters.py",
+              "RelativeToolTip": "stock\\templatetags\\custom_filters.py",
+              "ViewState": "AgIAAA8AAAAAAAAAAAAAAB4AAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2026-02-25T04:25:15.114Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "urls.py",
+              "DocumentMoniker": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\inventory_systems\\urls.py",
+              "RelativeDocumentMoniker": "inventory_systems\\urls.py",
+              "ToolTip": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\inventory_systems\\urls.py",
+              "RelativeToolTip": "inventory_systems\\urls.py",
+              "ViewState": "AgIAABgAAAAAAAAAAAAAACMAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2026-02-24T18:52:34.305Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "base.html",
+              "DocumentMoniker": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\templates\\base.html",
+              "RelativeDocumentMoniker": "stock\\templates\\base.html",
+              "ToolTip": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\templates\\base.html",
+              "RelativeToolTip": "stock\\templates\\base.html",
+              "ViewState": "AgIAAIsBAAAA1BmWtcchwJkBAAAyAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
+              "WhenOpened": "2026-02-24T17:03:43.864Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "forms.py",
+              "DocumentMoniker": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\forms.py",
+              "RelativeDocumentMoniker": "stock\\forms.py",
+              "ToolTip": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\forms.py",
+              "RelativeToolTip": "stock\\forms.py",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAIEAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2026-02-24T10:05:48.469Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "views.py",
+              "DocumentMoniker": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\views.py",
+              "RelativeDocumentMoniker": "stock\\views.py",
+              "ToolTip": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\views.py",
+              "RelativeToolTip": "stock\\views.py",
+              "ViewState": "AgIAANMBAAAAAAAAAAAAANwBAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2026-02-23T09:16:51.359Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:2:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "urls.py",
+              "DocumentMoniker": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\urls.py",
+              "RelativeDocumentMoniker": "stock\\urls.py",
+              "ToolTip": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\urls.py",
+              "RelativeToolTip": "stock\\urls.py",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAABMAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2026-02-22T14:44:21.443Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "admin.py",
+              "DocumentMoniker": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\accounts\\admin.py",
+              "RelativeDocumentMoniker": "accounts\\admin.py",
+              "ToolTip": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\accounts\\admin.py",
+              "RelativeToolTip": "accounts\\admin.py",
+              "ViewState": "AgIAAAoAAAAAAAAAAAAYwBcAAAA6AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2026-02-22T15:40:05.891Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "setup_tenant_user.py",
+              "DocumentMoniker": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\accounts\\management\\commands\\setup_tenant_user.py",
+              "RelativeDocumentMoniker": "accounts\\management\\commands\\setup_tenant_user.py",
+              "ToolTip": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\accounts\\management\\commands\\setup_tenant_user.py",
+              "RelativeToolTip": "accounts\\management\\commands\\setup_tenant_user.py",
+              "ViewState": "AgIAACMAAAAAAAAAAAAAACUAAABXAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2026-02-24T08:25:11.429Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "__init__.py",
+              "DocumentMoniker": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\accounts\\management\\commands\\__init__.py",
+              "RelativeDocumentMoniker": "accounts\\management\\commands\\__init__.py",
+              "ToolTip": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\accounts\\management\\commands\\__init__.py",
+              "RelativeToolTip": "accounts\\management\\commands\\__init__.py",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2026-02-24T08:23:38.333Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "admin.py",
+              "DocumentMoniker": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\admin.py",
+              "RelativeDocumentMoniker": "stock\\admin.py",
+              "ToolTip": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\admin.py",
+              "RelativeToolTip": "stock\\admin.py",
+              "ViewState": "AgIAAB8AAAAAAAAAAAAowCsAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2026-02-22T15:37:10.393Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "tenant_urls.py",
+              "DocumentMoniker": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\inventory_systems\\tenant_urls.py",
+              "RelativeDocumentMoniker": "inventory_systems\\tenant_urls.py",
+              "ToolTip": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\inventory_systems\\tenant_urls.py",
+              "RelativeToolTip": "inventory_systems\\tenant_urls.py",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAwA4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2026-02-22T18:34:43.688Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "startup.py",
+              "DocumentMoniker": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\inventory_systems\\startup.py",
+              "RelativeDocumentMoniker": "inventory_systems\\startup.py",
+              "ToolTip": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\inventory_systems\\startup.py",
+              "RelativeToolTip": "inventory_systems\\startup.py",
+              "ViewState": "AgIAAAgAAAAAAAAAAAAAAAoAAAAHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2026-02-22T15:44:40.762Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "models.py",
+              "DocumentMoniker": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\accounts\\models.py",
+              "RelativeDocumentMoniker": "accounts\\models.py",
+              "ToolTip": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\accounts\\models.py",
+              "RelativeToolTip": "accounts\\models.py",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAABZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2026-02-22T15:34:27.487Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "settings.py",
+              "DocumentMoniker": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\inventory_systems\\settings.py",
+              "RelativeDocumentMoniker": "inventory_systems\\settings.py",
+              "ToolTip": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\inventory_systems\\settings.py",
+              "RelativeToolTip": "inventory_systems\\settings.py",
+              "ViewState": "AgIAABoAAAAAnBmG+sMQwB8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2026-02-22T14:33:24.58Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": ".env",
+              "DocumentMoniker": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\.env",
+              "RelativeDocumentMoniker": ".env",
+              "ToolTip": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\.env",
+              "RelativeToolTip": ".env",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-02-22T13:57:57.697Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "models.py",
+              "DocumentMoniker": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\models.py",
+              "RelativeDocumentMoniker": "stock\\models.py",
+              "ToolTip": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\stock\\models.py",
+              "RelativeToolTip": "stock\\models.py",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAAJkAAAAlAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2026-02-22T15:27:11.803Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "models.py",
+              "DocumentMoniker": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\tenants\\models.py",
+              "RelativeDocumentMoniker": "tenants\\models.py",
+              "ToolTip": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\tenants\\models.py",
+              "RelativeToolTip": "tenants\\models.py",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAcAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2026-02-22T15:25:55.384Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "requirements.txt",
+              "DocumentMoniker": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\requirements.txt",
+              "RelativeDocumentMoniker": "requirements.txt",
+              "ToolTip": "C:\\Users\\computer world\\source\\repos\\inventory-systemic\\requirements.txt",
+              "RelativeToolTip": "requirements.txt",
+              "ViewState": "AgIAABMAAAAAAAAAAAAAABYAAAAPAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
+              "WhenOpened": "2026-02-22T14:07:03.414Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
