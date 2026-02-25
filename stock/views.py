@@ -94,6 +94,11 @@ class SalesTransactionViewSet(TenantQuerysetMixin, viewsets.ModelViewSet):
             .order_by("-id")
         )
 
+    def get_serializer_class(self):
+        if self.action == "list":
+            return SaleListSerializer
+        return SaleDetailSerializer
+
     def perform_create(self, serializer):
         serializer.save(tenant=self.request.user.company, created_by=self.request.user)
 
