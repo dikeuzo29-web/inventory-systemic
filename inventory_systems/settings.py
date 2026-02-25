@@ -31,15 +31,13 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "fallback-secret-key")
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
 ALLOWED_HOSTS = [
-    "web-production-6f92.up.railway.app",
-    "inventory-sys-ntjc.onrender.com",
+    "inventory-systemic.onrender.com",
     "localhost",
     "127.0.0.1"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://web-production-6f92.up.railway.app",
-    "https://inventory-sys-ntjc.onrender.com",
+    "https://inventory-systemic.onrender.com",
 ]
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
@@ -99,10 +97,10 @@ INSTALLED_APPS = [
     'djoser',
 ]
 
-# # Tenant models
-TENANT_MODEL = "tenants.Client"
-TENANT_DOMAIN_MODEL = "tenants.Domain"
-# TENANT_URLCONF = 'inventory_systems.tenant_urls'
+# # # Tenant models
+# TENANT_MODEL = "tenants.Client"
+# TENANT_DOMAIN_MODEL = "tenants.Domain"
+# # TENANT_URLCONF = 'inventory_systems.tenant_urls'
 
 # settings.py
 MIDDLEWARE = [   
